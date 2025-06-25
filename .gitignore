@@ -4,3 +4,8 @@ builddir/
 *.valgrind
 vgcore.*
 *.db
+*.o
+*.so
+/app
+App/Enclave_u.*
+Enclave/Enclave_t.*
