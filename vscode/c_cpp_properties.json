@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Ubuntu",
+            "includePath": [
+                "${workspaceFolder}/App",
+                "${workspaceFolder}/Enclave",
+                "/opt/intel/sgxsdk/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "${default}",
+            "compilerArgs": [
+                "-Wall",
+                "-Werror"
+            ]
+        }
+    ],
+    "version": 4
+}
