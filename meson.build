@@ -1,8 +1,24 @@
 project('hello-world-intel-sgx', 'c', 'cpp',
     version: '0.1.0',
     license: 'BSD-3-Clause',
-    meson_version: '>= 1.4.0',
+    meson_version: '>= 1.4',
     subproject_dir: 'external',
+    default_options: {
+        'c_std': 'c11',
+        'cpp_std': 'c++11',
+        'buildtype': 'release',
+        'warning_level': '2',
+        'default_library': 'static',
+        'prefer_static': true,
+        'b_asneeded': true,
+        'b_lundef': true,
+        'b_lto': true,
+        'b_lto_threads': 0,
+        'b_lto_mode': 'default',
+        'b_ndebug': 'if-release',
+        'b_pie': true,
+        'b_staticpic': true,
+    },
 )
 
 warning_level = get_option('warning_level') == 'everything' ? 5 : get_option('warning_level').to_int()
@@ -16,6 +32,7 @@ cxx = meson.get_compiler('cpp')
 # COMPILER FLAGS  #
 
 warnings = []
+c_warnings = []
 cpp_warnings = []
 # Safety warnings
 if warning_level >= 1
@@ -39,9 +56,6 @@ if warning_level >= 1
         '-Wcast-qual',
         '-Wconversion',
         '-Wredundant-decls',
-        '-Wjump-misses-init',
-        '-Wstrict-prototypes',
-        '-Wunsuffixed-float-constants',
         cc.get_supported_arguments('-Wformat-truncation=2').get(0, '-Wformat-truncation'),
         cc.get_supported_arguments('-Wformat-overflow=2').get(0, '-Wformat-overflow'),
         checked: 'warn',
@@ -49,6 +63,13 @@ if warning_level >= 1
         '-Wstringop-overflow=4', # GCC only
         '-Wno-nullability-extension', # Clang only
         checked: 'off',
+    )
+
+    c_warnings += cc.get_supported_arguments(
+        '-Wjump-misses-init',
+        '-Wstrict-prototypes',
+        '-Wunsuffixed-float-constants',
+        checked: 'warn',
     )
 
     cpp_warnings += cxx.get_supported_arguments(
@@ -80,7 +101,7 @@ if cc.get_id() == 'gcc'
         '-Wno-abi',
         '-Wno-nonnull-compare',
         '-Wno-unused-function',
-        checked: 'warn'
+        checked: 'warn',
     )
 endif
 
@@ -89,9 +110,6 @@ if optimizations_enabled
     optimizations += cc.get_supported_arguments(
         not meson.is_cross_build() ? '-march=native' : [],
         not meson.is_cross_build() ? '-mtune=native' : [],
-        not get_option('b_staticpic') ? '-fno-pic' : [],
-        not get_option('b_pie') ? '-fno-pie' : [],
-        not get_option('b_pie') ? '-fno-plt' : [],
         '-fdata-sections',
         '-ffunction-sections',
         '-fno-exceptions',
@@ -136,32 +154,25 @@ add_global_arguments(
     optimizations,
     general_codegen,
     debugging,
-    language: 'c',
+    language: ['c', 'cpp'],
 )
 
-add_global_arguments(
-    warnings,
-    cpp_warnings,
-    optimizations,
-    general_codegen,
-    debugging,
-    language: 'cpp',
-)
+add_global_arguments(c_warnings, language: 'c')
+add_global_arguments(cpp_warnings, language: 'cpp')
 
 linker_options = cc.get_supported_link_arguments(
     optimizations_enabled ? '-Wl,-O1' : [],
-    optimizations_enabled and not get_option('b_pie') ? '-no-pie' : [],
     '-Wl,--gc-sections',
     '-Wl,--sort-common',
     '-Wl,--as-needed',
     '-Wl,-z,relro',
     '-Wl,-z,now',
-    '-Wl,-z,pack-relative-relocs'
+    '-Wl,-z,noexecstack',
 )
 
 add_global_link_arguments(
     linker_options,
-    language: 'c',
+    language: ['c', 'cpp'],
 )
 
 # # # # # #

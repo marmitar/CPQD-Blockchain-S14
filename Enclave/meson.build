@@ -1,50 +1,75 @@
 # # # # # # # # # # # #
 # SGX TOOLS AND LIBS  #
 
-SGX_SDK = '/opt/intel/sgxsdk'
+SGX_SDK = get_option('sgx_sdk')
 SGX_PATH = [SGX_SDK / 'bin', SGX_SDK / 'bin/x64']
 SGX_INCLUDE = SGX_SDK / 'include'
 SGX_PKGCONFIG = SGX_SDK / 'pkgconfig'
 SGX_LDLIBRARY = SGX_SDK / 'sdk_libs'
+SGX_LIBDIR = SGX_SDK / 'lib64'
+
+if get_option('sgx_mode') == 'auto' and not meson.is_cross_build()
+    fs = import('fs')
+    if fs.read('/proc/cpuinfo', encoding: 'utf-8').split().contains('sgx')
+        SGX_MODE = 'hw'
+    else
+        SGX_MODE = 'sim'
+    endif
+elif get_option('sgx_mode') == 'hw'
+    SGX_MODE = 'hw'
+else
+    SGX_MODE = 'sim'
+endif
 
 sgx_edger8r = find_program('sgx_edger8r', dirs: SGX_PATH)
 sgx_sign = find_program('sgx_sign', dirs: SGX_PATH)
 
-sgx = declare_dependency(
+sgx_trts = declare_dependency(
+    include_directories: [
+        SGX_INCLUDE,
+        SGX_INCLUDE / 'libcxx',
+        SGX_INCLUDE / 'tlibc',
+    ],
     compile_args: [
         '-nostdinc',
         '-fvisibility=hidden',
         '-fpie',
         '-fstack-protector',
         '-fno-builtin-printf',
-        '-nostdinc++',
-    ],
-    include_directories: [
-        SGX_INCLUDE,
-        SGX_INCLUDE / 'libcxx',
-        SGX_INCLUDE / 'tlibc',
+        '-fno-trapv',
     ],
     link_args: [
-        '-Wl,-z,relro,-z,now,-z,noexecstack',
-        '-Wl,--no-undefined',
-        '-nostdlib', '-nodefaultlibs', '-nostartfiles', f'-L@SGX_SDK@/lib64',
-        '-Wl,--whole-archive',
-        '-lsgx_trts_sim',
-        '-Wl,--no-whole-archive',
         '-Wl,--start-group',
-        '-lsgx_tstdc',
-        '-lsgx_tcxx',
-        '-lsgx_tcrypto',
-        '-lsgx_trts_sim',
-        '-Wl,--end-group',
+        '-Wl,-z,relro,-z,now,-z,noexecstack',
+        '-nostdlib',
+        '-nodefaultlibs',
+        '-nostartfiles',
+        f'@SGX_LIBDIR@/libsgx_tstdc.a',
+        f'@SGX_LIBDIR@/libsgx_tcxx.a',
+        f'@SGX_LIBDIR@/libsgx_tcrypto.a',
+        '-Wl,--whole-archive',
+        SGX_MODE == 'hw' ? f'@SGX_LIBDIR@/libsgx_trts.a' : f'@SGX_LIBDIR@/libsgx_trts_sim.a',
+        '-Wl,--no-whole-archive',
         '-Wl,-Bstatic',
         '-Wl,-Bsymbolic',
         '-Wl,--no-undefined',
         '-Wl,-pie,-eenclave_entry',
         '-Wl,--export-dynamic',
         '-Wl,--defsym,__ImageBase=0',
-    ]
-)
+        '-Wl,--end-group',
+    ],
+).as_system('system')
+
+sgx_urts = declare_dependency(
+    include_directories: [
+        SGX_INCLUDE,
+    ],
+    link_args: [
+        f'-L@SGX_LIBDIR@',
+        SGX_MODE == 'hw' ? '-lsgx_urts' : '-lsgx_urts_sim',
+        SGX_MODE == 'hw' ? '-lsgx_uae_service' : '-lsgx_uae_service_sim',
+    ],
+).as_system('system')
 
 # # # # # # # # # # # # #
 # COMPILING THE ENCLAVE #
@@ -75,14 +100,20 @@ untrusted_enclave = custom_target('untrusted-enclave',
     output: ['Enclave_u.c', 'Enclave_u.h'],
 )
 
+enclave_lds = files(debugging_enabled ? 'Enclave_debug.lds' : 'Enclave.lds')
+
 enclave = shared_library('enclave',
     files('Enclave.cpp', 'TrustedLibrary/Libcxx.cpp'),
     trusted_enclave,
+    c_args: ['-fno-exceptions'],
+    cpp_args: ['-nostdinc++'],
+    link_depends: [enclave_lds],
     link_args: [
-        '-Wl,--version-script=@0@/Enclave_debug.lds'.format(meson.current_source_dir()),
+        '-Wl,--version-script=@0@'.format(enclave_lds[0].full_path()),
     ],
-    dependencies: [sgx],
+    dependencies: [sgx_trts],
     name_prefix: '',
+    name_suffix: 'so',
 )
 
 custom_target('signed-enclave',
