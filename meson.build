@@ -12,18 +12,6 @@ debugging_enabled = get_option('debug')
 cc = meson.get_compiler('c')
 cxx = meson.get_compiler('cpp')
 
-# # # # # # # # # # # #
-# SGX TOOLS AND LIBS  #
-
-SGX_SDK = '/opt/intel/sgxsdk'
-SGX_PATH = [SGX_SDK / 'bin', SGX_SDK / 'bin/x64']
-SGX_INCLUDE = SGX_SDK / 'include'
-SGX_PKGCONFIG = SGX_SDK / 'pkgconfig'
-SGX_LDLIBRARY = SGX_SDK / 'sdk_libs'
-
-sgx_edger8r = find_program('sgx_edger8r', dirs: SGX_PATH)
-sgx_sign = find_program('sgx_sign', dirs: SGX_PATH)
-
 # # # # # # # # # #
 # COMPILER FLAGS  #
 
