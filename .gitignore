@@ -3,3 +3,4 @@ build/
 builddir/
 *.valgrind
 vgcore.*
+*.so
