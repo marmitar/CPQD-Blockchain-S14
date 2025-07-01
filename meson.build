@@ -180,3 +180,18 @@ add_global_link_arguments(
 
 subdir('Enclave')
 subdir('App')
+
+# # # # #
+# TESTS #
+
+fs = import('fs')
+
+test('example',
+    app,
+    depends: [signed_enclave],
+    workdir: meson.current_build_dir() / fs.parent(signed_enclave),
+    env: {
+        'LD_LIBRARY_PATH': SGX_LIBDIR,
+    },
+    suite: ['example'],
+)

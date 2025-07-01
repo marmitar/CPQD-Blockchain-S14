@@ -116,7 +116,7 @@ enclave = shared_library('enclave',
     name_suffix: 'so',
 )
 
-custom_target('signed-enclave',
+signed_enclave = custom_target('signed-enclave',
     command: [
         sgx_sign, 'sign',
         '-key', files('Enclave_private_test.pem'),
