@@ -7,5 +7,6 @@ CompileFlags:
     - -fallow-store-data-races
     - -fwhole-program
     - -Wstringop-overflow=4
+    - -fno-trapv
 Index:
   Background: Build
