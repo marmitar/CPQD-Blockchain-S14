@@ -13,5 +13,6 @@ meson compile -C build signed-enclave app
 
 ```sh
 ln -sf build/Enclave/enclave.signed.so enclave.signed.so
+source /opt/intel/sgxsdk/environment
 build/App/app
 ```

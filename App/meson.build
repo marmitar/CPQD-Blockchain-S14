@@ -3,7 +3,7 @@
 
 threads = dependency('threads')
 
-executable('app',
+app = executable('app',
     files('App.cpp', 'TrustedLibrary/Libcxx.cpp'),
     untrusted_enclave,
     dependencies: [sgx_urts, threads],
