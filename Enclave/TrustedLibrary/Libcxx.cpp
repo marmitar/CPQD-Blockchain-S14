@@ -29,6 +29,13 @@
  *
  */
 
+#if defined(__clang__)
+/** __config.h is malformed with clang */
+#    undef __clang__
+#    include <__config>
+#    define __clang__ 1
+#endif
+
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
@@ -841,7 +848,7 @@ CounterWithoutMutex counter_without_protection;
 
 // E-call used by mutex demo to perform the incrementation using a counter without mutex protection
 void ecall_mutex_demo_no_protection() {
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 100'000; ++i) {
         counter_without_protection.increment();
     }
 }
@@ -875,7 +882,7 @@ CounterProtectedByMutex counter_with_protection;
 
 // E-call used by mutex demo to perform the actual incrementation
 void ecall_mutex_demo() {
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 100'000; ++i) {
         counter_with_protection.increment();
     }
 }

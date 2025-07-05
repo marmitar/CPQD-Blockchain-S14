@@ -66,10 +66,11 @@ if warning_level >= 1
     )
 
     c_warnings += cc.get_supported_arguments(
-        '-Wjump-misses-init',
         '-Wstrict-prototypes',
-        '-Wunsuffixed-float-constants',
         checked: 'warn',
+    ) + cc.get_supported_arguments(
+        '-Wjump-misses-init', # GCC only
+        checked: 'off',
     )
 
     cpp_warnings += cxx.get_supported_arguments(
@@ -114,11 +115,11 @@ if optimizations_enabled
         '-ffunction-sections',
         '-fno-exceptions',
         '-fno-math-errno',
-        '-fno-signaling-nans',
         '-fno-trapping-math',
         checked: 'warn',
     ) + cc.get_supported_arguments(
         get_option('b_lto_mode') == 'default' ? '-flto=full' : [], # Clang only
+        '-fno-signaling-nans', # GCC only
         '-fallow-store-data-races', # GCC only
         '-fwhole-program', # GCC only
         checked: 'off',
@@ -129,7 +130,7 @@ general_codegen = cc.get_supported_arguments(
     '-pipe',
     '-fvisibility=hidden',
     debugging_enabled ? '-fstrict-overflow' : '-fno-strict-overflow',
-    # _FORTIFY_SOURCE=2+ breaks static analysis on some stdlib functions
+    # _FORTIFY_SOURCE=2+ breaks static analysis on some stdlib functions for Clang
     '-D_FORTIFY_SOURCE=@0@'.format(debugging_enabled and cc.get_id() == 'gcc' ? 3 : 1),
     checked: 'warn',
 )
