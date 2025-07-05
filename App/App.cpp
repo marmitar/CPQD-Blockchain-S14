@@ -29,6 +29,12 @@
  *
  */
 
+// clang-format off
+#if __cplusplus < 202300L
+#error "This code is compliant with C++23 or later only."
+#endif
+// clang-format on
+
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
