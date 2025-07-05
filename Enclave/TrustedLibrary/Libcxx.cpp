@@ -855,11 +855,13 @@ void ecall_mutex_demo_no_protection() {
 
 // E-call used by mutex demo to get the final value of the counter from enclave
 void ecall_print_final_value_no_protection() {
+    // clang-format off
     printf(
-        "[mutex] Incrementing values in three threads without mutex protection, using a 100000 times loop. "
-        "\n[mutex]Expected value is 300000. The final value is %d.\n",
+        "[mutex] Incrementing values in three threads without mutex protection, using a 100000 times loop.\n"
+        "[mutex]Expected value is 300000. The final value is %d.\n",
         counter_without_protection.value
     );
+    // clang-format on
 }
 
 // Structure used in mutex demo
@@ -889,11 +891,13 @@ void ecall_mutex_demo() {
 
 // E-call used by mutex demo to get the final value of the counter from enclave
 void ecall_print_final_value_mutex_demo() {
+    // clang-format off
     printf(
-        "[mutex] Mutex protection when incrementing a value in 3 threads, using a 100000 times loop. \n[mutex]Expected "
-        "value is 300000. The final value is %d.\n",
+        "[mutex] Mutex protection when incrementing a value in 3 threads, using a 100000 times loop.\n"
+        "[mutex]Expected value is 300000. The final value is %d.\n",
         counter_with_protection.value
     );
+    // clang-format on
 }
 
 // Feature name       : condition_variable
