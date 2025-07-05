@@ -35,29 +35,30 @@
 #endif
 // clang-format on
 
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <sgx_defs.h>
+#include <sgx_eid.h>
+#include <sgx_error.h>
+#include <sgx_urts.h>
 
-#include <pwd.h>
-#include <unistd.h>
 #define MAX_PATH FILENAME_MAX
 
-#include "App.h"
+#include "./App.h"
 #include "Enclave_u.h"
-#include "sgx_urts.h"
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
 
-typedef struct _sgx_errlist_t {
+using sgx_errlist_t = struct sgx_errlist_t {
     sgx_status_t err;
     const char *msg;
     const char *sug; /* Suggestion */
-} sgx_errlist_t;
+};
 
 /* Error code returned by sgx_create_enclave */
-static const sgx_errlist_t sgx_errlist[] = {
+static const sgx_errlist_t sgx_errlist[] /* NOLINT(modernize-avoid-c-arrays) */ = {
     {
      .err = SGX_ERROR_UNEXPECTED,
      .msg = "Unexpected error occurred.",
@@ -146,9 +147,9 @@ static const sgx_errlist_t sgx_errlist[] = {
 };
 
 /* Check error conditions for loading enclave */
-void print_error_message(sgx_status_t ret) {
+static void print_error_message(sgx_status_t ret) {
     size_t idx = 0;
-    size_t ttl = sizeof sgx_errlist / sizeof sgx_errlist[0];
+    const size_t ttl = sizeof sgx_errlist / sizeof sgx_errlist[0];
 
     for (idx = 0; idx < ttl; idx++) {
         if (ret == sgx_errlist[idx].err) {
@@ -168,7 +169,7 @@ void print_error_message(sgx_status_t ret) {
 /* Initialize the enclave:
  *   Call sgx_create_enclave to initialize an enclave instance
  */
-int initialize_enclave(void) {
+static auto initialize_enclave() -> int {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
 
     /* Call sgx_create_enclave to initialize an enclave instance */
@@ -191,14 +192,14 @@ void ocall_print_string(const char *str) {
 }
 
 /* Application entry */
-int SGX_CDECL main(int argc, char *argv[]) {
+auto SGX_CDECL main(int argc, char *argv[]) -> int {
     (void) (argc);
     (void) (argv);
 
     /* Initialize the enclave */
     if (initialize_enclave() < 0) {
         printf("Enter a character before exit ...\n");
-        getchar();
+        (void) getchar();
         return -1;
     }
 

@@ -6,7 +6,8 @@ Checks: '
   performance-*,
   modernize-*,
   -modernize-use-nullptr,
-  modernize-macro-to-enum,
+  -modernize-use-ranges,
+  -modernize-use-std-print,
   bugprone-*,
   cert-*-c,
   concurrency-*,
@@ -66,6 +67,7 @@ CheckOptions:
   google-readability-function-size.StatementThreshold: 800
   google-readability-namespace-comments.ShortNamespaceLines: 10
   google-readability-namespace-comments.SpacesBeforeComments: 2
+  readability-magic-numbers.IgnoredIntegerValues: 1;2;3;4;5
   llvm-else-after-return.WarnOnConditionVariables: false
   llvm-else-after-return.WarnOnUnfixable: false
   llvm-qualified-auto.AddConstToQualified: false

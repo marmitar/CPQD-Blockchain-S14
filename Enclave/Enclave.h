@@ -29,20 +29,26 @@
  *
  */
 
-#ifndef _ENCLAVE_H_
-#define _ENCLAVE_H_
+#ifndef ENCLAVE_H
+#define ENCLAVE_H
 
-#include <assert.h>
-#include <stdlib.h>
+// clang-format off
+#if __cplusplus < 202300L
+#error "This code is compliant with C++23 or later only."
+#endif
+// clang-format on
 
-#if defined(__cplusplus)
+// IWYU pragma: always_keep
+#if defined(__clang__)
+/** __config.h is malformed with clang */
+#    undef __clang__
+#    include <__config>  // IWYU pragma: keep
+#    define __clang__ 1  // NOLINT(bugprone-reserved-identifier,cert-dcl37-c)
+#endif
+
 extern "C" {
-#endif
-
-    int printf(const char *fmt, ...);
-
-#if defined(__cplusplus)
+    [[gnu::format(printf, 1, 2)]]
+    auto printf(const char *fmt, ...) -> int;
 }
-#endif
 
-#endif /* !_ENCLAVE_H_ */
+#endif /* !ENCLAVE_H */

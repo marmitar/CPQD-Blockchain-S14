@@ -29,28 +29,25 @@
  *
  */
 
-// clang-format off
-#if __cplusplus < 202300L
-#error "This code is compliant with C++23 or later only."
-#endif
-// clang-format on
+#include "./Enclave.h"  // must be included before the stdlib
 
-#include <stdarg.h>
-#include <stdio.h> /* vsnprintf */
+#include <array>
+#include <cstdarg>
+#include <cstdio> /* vsnprintf */
 
-#include "Enclave.h"
 #include "Enclave_t.h" /* print_string */
 
 /*
  * printf:
  *   Invokes OCALL to display the enclave buffer to the terminal.
  */
-int printf(const char *fmt, ...) {
-    char buf[BUFSIZ] = {'\0'};
+auto printf(const char *fmt, ...) -> int {
+    std::array<char, BUFSIZ> buf = {'\0'};
+
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(buf, BUFSIZ, fmt, ap);
+    (void) vsnprintf(buf.data(), BUFSIZ, fmt, ap);
     va_end(ap);
-    ocall_print_string(buf);
+    ocall_print_string(buf.data());
     return 0;
 }

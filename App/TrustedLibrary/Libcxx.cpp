@@ -28,18 +28,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <stdio.h>
+
+#include <sgx_error.h>
+#include <thread>
 
 #include "../App.h"
 #include "Enclave_u.h"
-#include <thread>
 
 /* ecall_libcxx_functions:
  *   Invokes standard C++11 functions.
  */
 
 // This function is part of mutex demo
-void demo_counter_without_mutex() {
+static void demo_counter_without_mutex() {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_mutex_demo_no_protection(global_eid);
     if (ret != SGX_SUCCESS) {
@@ -48,7 +49,7 @@ void demo_counter_without_mutex() {
 }
 
 // This function is part of mutex demo
-void demo_counter_mutex() {
+static void demo_counter_mutex() {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_mutex_demo(global_eid);
     if (ret != SGX_SUCCESS) {
@@ -57,7 +58,7 @@ void demo_counter_mutex() {
 }
 
 // This function is used by processing thread of condition variable demo
-void demo_cond_var_run() {
+static void demo_cond_var_run() {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_condition_variable_run(global_eid);
     if (ret != SGX_SUCCESS) {
@@ -66,7 +67,7 @@ void demo_cond_var_run() {
 }
 
 // This function is used by the loader thread of condition variable demo
-void demo_cond_var_load() {
+static void demo_cond_var_load() {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
     ret = ecall_condition_variable_load(global_eid);
     if (ret != SGX_SUCCESS) {

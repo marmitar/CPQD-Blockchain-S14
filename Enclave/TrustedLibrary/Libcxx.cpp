@@ -29,16 +29,15 @@
  *
  */
 
-#if defined(__clang__)
-/** __config.h is malformed with clang */
-#    undef __clang__
-#    include <__config>
-#    define __clang__ 1
-#endif
+#include "../Enclave.h"  // must be included before the stdlib
 
 #include <algorithm>
 #include <atomic>
+#include <cinttypes>
 #include <condition_variable>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <functional>
 #include <initializer_list>
 #include <iterator>
@@ -50,9 +49,9 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
-#include "../Enclave.h"
 #include "Enclave_t.h"
 
 // Feature name        : Lambda functions
@@ -62,18 +61,20 @@ void ecall_lambdas_demo() {
     // Lambdas capture options:
     int local_var = 0;
 
-    [] { return true; };  // captures nothing
+    // clang-format off
+    (void) [] { return true; };  // captures nothing
 
-    [&] { return ++local_var; };           // captures all variable by reference
-    [&local_var] { return ++local_var; };  // captures local_var by reference
-    [&, local_var] { return local_var; };  // captures all by reference except local_var
+    (void) [&] { return ++local_var; };           // captures all variable by reference
+    (void) [&local_var] { return ++local_var; };  // captures local_var by reference
+    (void) [&, local_var] { return local_var; };  // captures all by reference except local_var
 
-    [=] { return local_var; };                // captures all variable by value
-    [local_var] { return local_var; };        // captures local_var by value
-    [=, &local_var] { return ++local_var; };  // captures all variable by value except local_var
+    (void) [=] { return local_var; };                // captures all variable by value
+    (void) [local_var] { return local_var; };        // captures local_var by value
+    (void) [=, &local_var] { return ++local_var; };  // captures all variable by value except local_var
+    // clang-format on
 
     // Sample usages for lamdbas:
-    std::vector<int> v {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector<int> v {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};  // NOLINT(readability-magic-numbers)
     printf("[Lambdas] Initial array using lambdas: { ");
 
     // Print the elements in an array using lambdas
@@ -90,10 +91,8 @@ void ecall_lambdas_demo() {
     }
 
     // Count the even numbers using a lambda function as an unary predicate when calling count_if.
-    long long number_of_even_elements = std::count_if(std::begin(v), std::end(v), [=](int val) {
-        return val % 2 == 0;
-    });
-    printf("[Lambdas] Number of even elements in the array is %lld.\n", number_of_even_elements);
+    auto number_of_even_elements = std::count_if(std::begin(v), std::end(v), [=](int val) { return val % 2 == 0; });
+    printf("[Lambdas] Number of even elements in the array is %" PRIi64 ".\n", number_of_even_elements);
 
     // Sort the elements of an array using lambdas
     std::sort(std::begin(v), std::end(v), [](int e1, int e2) { return e2 < e1; });
@@ -110,23 +109,25 @@ void ecall_lambdas_demo() {
 // Demo description    : Shows basic usages of auto specifier with different types.
 
 // Helper function for ecall_auto_demo:
-void sample_func_auto_demo() {
+static void sample_func_auto_demo() {
     printf("[auto] Function sample_func_auto_demo is called. \n");
 }
 
 void ecall_auto_demo() {
-    double local_var = 0.0;
+    const double local_var = 0.0;
 
-    auto a = 7;  // Type of variable a is deduced to be int
+    const auto a = 7;  // Type of variable a is deduced to be int
     printf("[auto] Type of a is int. typeid = %s.\n", typeid(a).name());
 
-    const auto b1 = local_var, *b2 = &local_var;  // auto can be used with modifiers like const or &.
+    const auto b1 = local_var;
+    const auto *b2 = &local_var;  // auto can be used with modifiers like const or &.
     printf("[auto] Type of b1 is const double. typeid = %s.\n", typeid(b1).name());
     printf("[auto] Type of b2 is const double*. typeid = %s.\n", typeid(b2).name());
     (void) b1;
     (void) b2;
 
-    auto c = 0, *d = &a;  // multiple variable initialization if the deduced type does match
+    auto c = 0;
+    const auto *d = &a;  // multiple variable initialization if the deduced type does match
     printf("[auto] Type of c is int. typeid = %s.\n", typeid(c).name());
     printf("[auto] Type of d is int*. typeid = %s.\n", typeid(d).name());
     (void) c;
@@ -147,13 +148,14 @@ void ecall_auto_demo() {
 // Feature description : It is used for type deduction
 // Demo description    : Shows basic usages of decltype specifier with different types.
 void ecall_decltype_demo() {
-    int a = 0;
-    decltype(a) b = 0;  // create an element of the same type as another element
+    const int a = 0;
+    const decltype(a) b = 0;  // create an element of the same type as another element
     printf("[decltype] Type of b is int. typeid = %s.\n", typeid(b).name());
 
-    double c = 0;
-    decltype(a + c) sum = a + c;  // deduce type of a sum of elements of different types and create an element of that
-                                  // type. most usefull in templates.
+    const double c = 0;
+    // deduce type of a sum of elements of different types and create an element of that type.
+    // most usefull in templates.
+    const decltype(a + c) sum = a + c;
     printf("[decltype] Type of sum is double. typeid = %s.\n", typeid(sum).name());
     (void) sum;
     (void) b;
@@ -177,11 +179,11 @@ void ecall_strongly_typed_enum_demo() {
     };
 
     // initialization of variable of type DaysOfWeek
-    DaysOfWeek random_day = DaysOfWeek::MONDAY;
+    const DaysOfWeek random_day = DaysOfWeek::MONDAY;
     (void) random_day;
 
     // In is not mandatory to specify the underlying type.
-    enum class Weekend {
+    enum class Weekend {  // NOLINT(performance-enum-size)
         SATURDAY,
         SUNDAY
     };
@@ -196,8 +198,8 @@ void ecall_strongly_typed_enum_demo() {
 // Feature description : Easy to read way of accessing elements in an container.
 // Demo description    : Shows basic usage of range based for loop with c array and vector.
 void ecall_range_based_for_loops_demo() {
-    char array_of_letters[] = {'a', 'b', 'c', 'd'};
-    std::vector<char> vector_of_letters = {'a', 'b', 'c', 'd'};
+    const char array_of_letters[] = {'a', 'b', 'c', 'd'};
+    const std::vector<char> vector_of_letters = {'a', 'b', 'c', 'd'};
 
     printf("[range_based_for_loops] Using range based for loops to print the content of an array: { ");
     for (auto elem : array_of_letters) {
@@ -239,7 +241,7 @@ class Base {
     Base(const Base &) = delete;
     Base() = default;
     virtual void f_must_be_overrided() {}
-    virtual ~Base() {}
+    virtual ~Base() = default;
 };
 
 /* Helper class for ecall_virtual_function_control_demo.*/
@@ -251,12 +253,12 @@ class Derived : Base {
     */
 
     /*The keyword override assures that the function overrides a base class member*/
-    virtual void f_must_be_overrided() override {}
+    void f_must_be_overrided() override {}
 };
 
 void ecall_virtual_function_control_demo() {
     // The default constructor will be called generated by the compiler with explicit keyword default
-    Base a;
+    const Base a;
     // Trying to use the copy contructor will generate code that does not compile because it is deleted
     // Base b = a;
 
@@ -294,9 +296,9 @@ class DemoDelegatingConstructors {
 };
 
 void ecall_delegating_constructors_demo() {
-    DemoDelegatingConstructors a(1, 2, 3);
-    DemoDelegatingConstructors b(1, 2);
-    DemoDelegatingConstructors c(1);
+    const DemoDelegatingConstructors a(1, 2, 3);
+    const DemoDelegatingConstructors b(1, 2);
+    const DemoDelegatingConstructors c(1);
 
     printf("\n");  // end of demo
 }
@@ -306,17 +308,17 @@ void ecall_delegating_constructors_demo() {
 // Demo description    : Shows basic usage of std::function
 
 // Helper class for ecall_std_function_demo:
-void sample_std_function1() {
+static void sample_std_function1() {
     printf("[std_function] calling sample_std_function1\n");
 }
 
 void ecall_std_function_demo() {
     // Example with functions
-    std::function<void()> funct = sample_std_function1;
+    const std::function<void()> funct = sample_std_function1;
     funct();
 
     // Example with lambda
-    std::function<void()> funct_lambda = [] { printf("[std_function] calling a lambda function\n"); };
+    const std::function<void()> funct_lambda = [] { printf("[std_function] calling a lambda function\n"); };
     funct_lambda();
 
     printf("\n");  // end of demo
@@ -327,13 +329,13 @@ void ecall_std_function_demo() {
 // Demo description    : Shows basic usage of the std::all_of, std::any_of, std::none_of.
 void ecall_cxx11_algorithms_demo() {
     std::vector<int> v = {0, 1, 2, 3, 4, 5};
-    bool are_all_of = all_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
+    const bool are_all_of = all_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
     printf("[cxx11_algorithms] All elements in  { 0 1 2  3 4 5 } are even is  %s. \n", are_all_of ? "true" : "false");
 
-    bool are_any_of = any_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
+    const bool are_any_of = any_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
     printf("[cxx11_algorithms] Some elements in  { 0 1 2 3 4 5 } are even is  %s. \n", are_any_of ? "true" : "false");
 
-    bool are_none_of = none_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
+    const bool are_none_of = none_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
     printf("[cxx11_algorithms] None elements in  { 0 1 2 3 4 5 } are even is  %s. \n", are_none_of ? "true" : "false");
 
     printf("\n");  // end of demo
@@ -344,16 +346,16 @@ void ecall_cxx11_algorithms_demo() {
 // Demo description    : Shows basic usage of variadic templates
 
 // Helper template for ecall_variadic_templates_demo:
-template <typename T> T sum(T elem) {
+template <typename T> static auto sum(T elem) -> T {
     return elem;
 }
 
-template <typename T, typename... Args> T sum(T elem1, T elem2, Args... args) {
+template <typename T, typename... Args> static auto sum(T elem1, T elem2, Args... args) -> T {
     return elem1 + elem2 + sum(args...);
 }
 
 void ecall_variadic_templates_demo() {
-    int computed_sum = sum(1, 2, 3, 4, 5);
+    const int computed_sum = sum(1, 2, 3, 4, 5);
     printf("[variadic_templates] The sum  of paramters (1, 2, 3, 4, 5) is %d. \n", computed_sum);
     printf("\n");  // end of demo
 }
@@ -363,12 +365,12 @@ void ecall_variadic_templates_demo() {
 // Demo description    : Shows basic usage of SFINAE
 
 /*first candidate for substitution*/
-template <typename T> void f(typename T::A *) {
+template <typename T> static void f(typename T::A * /*unused*/) {
     printf("[sfinae] First candidate for substitution is matched.\n");
 }
 
 /*second candidate for substitution*/
-template <typename T> void f(T) {
+template <typename T> static void f(T /*unused*/) {
     printf("[sfinae] Second candidate for substitution is matched.\n");
 }
 
@@ -389,7 +391,7 @@ class Number {
         }
     }
 
-    void print_elements() {
+    void print_elements() const {
         printf("[initializer_list] The elements of the vector are:");
         for (auto item : elements) {
             printf(" %d", item);
@@ -403,7 +405,7 @@ class Number {
 
 void ecall_initializer_list_demo() {
     printf("[initializer_list] Using initializer list in the constructor. \n");
-    Number m = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    const Number m = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
     m.print_elements();
 
     printf("\n");  // end of demo
@@ -413,13 +415,15 @@ void ecall_initializer_list_demo() {
 // Feature description : They are used for memory usage optimazation by eliminating copy operations
 // Demo description    : Shows basic usage of rvalue, move constructor, and move operator
 
+static constexpr unsigned INITIAL_SIZE = 100;
+
 // Helper class for ecall_rvalue_demo
 class DemoBuffer {
     public:
-    unsigned int size = 100;
+    unsigned int size = INITIAL_SIZE;
     char *buffer;
 
-    DemoBuffer(int param_size) {
+    DemoBuffer(unsigned int param_size) {
         this->size = param_size;
         buffer = new char[size];
         printf("[rvalue] Called constructor : DemoBuffer(int size).\n");
@@ -449,9 +453,9 @@ class DemoBuffer {
 };
 
 // Helper class for ecall_rvalue_demo
-DemoBuffer foobar(int a) {
-    DemoBuffer x(100);
-    DemoBuffer y(100);
+static auto foobar(int a) -> DemoBuffer {
+    DemoBuffer x(INITIAL_SIZE);
+    DemoBuffer y(INITIAL_SIZE);
 
     if (a > 0) {
         return x;
@@ -459,24 +463,25 @@ DemoBuffer foobar(int a) {
         return y;
     }
 }
+
 void ecall_rvalue_demo() {
     // This will call the constructor
     printf("[rvalue] DemoBuffer a(100).\n");
-    DemoBuffer a(100);
+    DemoBuffer a(INITIAL_SIZE);
 
     printf("[rvalue] DemoBuffer foobar(100). \n");
     // Initializing variable d using a temporary object will result in a call to move constructor
     // This is usefull because it reduces the memory cost of the operation.
-    DemoBuffer d(foobar(100));
+    const DemoBuffer d(foobar(INITIAL_SIZE));
 
     // This will call the copy constructor. State of a will not change.
     printf("[rvalue] DemoBuffer b(a).\n");
-    DemoBuffer b(a);
+    const DemoBuffer b(a);
 
     printf("[rvalue] DemoBuffer c(std::move(a)).\n");
     // explicitly cast a to an rvalue so that c will be created using move constructor.
     // State of a is going to be reseted.
-    DemoBuffer c(std::move(a));
+    const DemoBuffer c(std::move(a));
 
     printf("\n");  // end of demo
 }
@@ -486,22 +491,22 @@ void ecall_rvalue_demo() {
 // Demo description    : Shows basic usage of nullptr
 
 // overload candidate 1
-void nullptr_overload_candidate(int i) {
+static void nullptr_overload_candidate(int i) {
     (void) i;
     printf("[nullptr] called void nullptr_overload_candidate(int i).\n");
 }
 
 // overload candidate 2
-void nullptr_overload_candidate(int *ptr) {
+static void nullptr_overload_candidate(const int *ptr) {
     (void) ptr;
     printf("[nullptr] called void nullptr_overload_candidate(int* ptr).\n");
 }
 
-template <class F, class A> void Fwd(F f, A a) {
+template <class F, class A> static void Fwd(F f, A a) {
     f(a);
 }
 
-void g(int *i) {
+static void g(const int *i) {
     (void) i;
     printf("[nullptr] Function %s called\n", __FUNCTION__);
 }
@@ -527,17 +532,17 @@ void ecall_nullptr_demo() {
 // Feature name        : Scoped enums
 // Feature description :
 // Demo description    :
-enum class Color {
-    orange,
-    brown,
+enum class Color : std::uint8_t {
+    orange = 0,
+    brown = 1,
     green = 30,
-    blue,
-    red
+    blue = 31,
+    red = 32
 };
 
 void ecall_enum_class_demo() {
     int n = 0;
-    Color color1 = Color::brown;
+    const Color color1 = Color::brown;
     switch (color1) {
         case Color::orange:
             printf("[enum class] orange");
@@ -559,7 +564,7 @@ void ecall_enum_class_demo() {
     n = static_cast<int>(color1);  // OK, n = 1
     printf(" - int = %d\n", n);
 
-    Color color2 = Color::red;
+    const Color color2 = Color::red;
     switch (color2) {
         case Color::orange:
             printf("[enum class] orange");
@@ -580,7 +585,7 @@ void ecall_enum_class_demo() {
     n = static_cast<int>(color2);  // OK, n = 32
     printf(" - int = %d\n", n);
 
-    Color color3 = Color::green;
+    const Color color3 = Color::green;
     switch (color3) {
         case Color::orange:
             printf("[enum class] orange");
@@ -612,7 +617,7 @@ void ecall_new_container_classes_demo() {
 
     std::unordered_set<int> set_of_numbers = {0, 1, 2, 3, 4, 5};
     const int searchVal = 3;
-    std::unordered_set<int>::const_iterator got = set_of_numbers.find(searchVal);
+    auto got = set_of_numbers.find(searchVal);
 
     if (got != set_of_numbers.end()) {
         printf("[new_container_classes] unordered_set { 0, 1, 2, 3, 4, 5} has value 3.\n");
@@ -622,7 +627,7 @@ void ecall_new_container_classes_demo() {
 
     // unordered_multiset
     // container used for fast acces that groups non unique elements in buckets based on their hash
-    std::unordered_multiset<int> multiset_of_numbers = {0, 1, 2, 3, 3, 3};
+    const std::unordered_multiset<int> multiset_of_numbers = {0, 1, 2, 3, 3, 3};
     printf(
         "[new_container_classes] multiset_set { 0, 1, 2, 3, 3, 3}  has %d elements with value %d.\n",
         (int) multiset_of_numbers.count(searchVal),
@@ -630,7 +635,7 @@ void ecall_new_container_classes_demo() {
     );
 
     // unordered_map
-    std::unordered_map<std::string, int> grades {
+    const std::unordered_map<std::string, int> grades {
         {"A", 10},
         {"B",  8},
         {"C",  7},
@@ -638,14 +643,14 @@ void ecall_new_container_classes_demo() {
         {"E",  3}
     };
     printf("[new_container_classes] unordered_map elements: {");
-    for (auto pair : grades) {
+    for (const auto &pair : grades) {
         printf("[%s %d] ", pair.first.c_str(), pair.second);
     }
 
     printf("}.\n");
 
     // unordered_multimap
-    std::unordered_multimap<std::string, int> multimap_grades {
+    const std::unordered_multimap<std::string, int> multimap_grades {
         {"A", 10},
         {"B",  8},
         {"B",  7},
@@ -655,7 +660,7 @@ void ecall_new_container_classes_demo() {
     };
 
     printf("[new_container_classes] unordered_multimap elements: {");
-    for (auto pair : multimap_grades) {
+    for (const auto &pair : multimap_grades) {
         printf("[%s %d] ", pair.first.c_str(), pair.second);
     }
     printf("}.\n");
@@ -669,18 +674,20 @@ void ecall_new_container_classes_demo() {
 void ecall_tuple_demo() {
     // Create tuple using std::make_tuple
     char array_of_letters[4] = {'A', 'B', 'C', 'D'};
-    std::vector<char> vector_of_letters = {'A', 'B', 'C', 'D'};
-    std::map<char, char> map_of_letters = {
+    const std::vector<char> vector_of_letters = {'A', 'B', 'C', 'D'};
+    const std::map<char, char> map_of_letters = {
         {'B', 'b'}
     };
 
     // Creating a tuple using a tuple constructor
-    std::tuple<int, std::string> tuple_sample_with_constructor(42, "Sample tuple");
+    constexpr int answer_to_life_unverse_everything = 42;
+    const std::tuple<int, std::string> tuple_sample_with_constructor(answer_to_life_unverse_everything, "Sample tuple");
     (void) tuple_sample_with_constructor;
 
     // Creating a tuple using std::make_tuple
+    constexpr double val = 7.9;
     auto tuple_sample =
-        std::make_tuple("<First element of TupleSample>", 1, 7.9, vector_of_letters, array_of_letters, map_of_letters);
+        std::make_tuple("<First element of TupleSample>", 1, val, vector_of_letters, array_of_letters, map_of_letters);
 
     // Access the elements in tupleSample using std::get<index>
     printf("[tuple] show first  element in TupleSample: %s. \n", std::get<0>(tuple_sample));
@@ -688,15 +695,15 @@ void ecall_tuple_demo() {
     printf("[tuple] show third  element in TupleSample: %f. \n", std::get<2>(tuple_sample));
 
     // Getting vector from a tuple
-    std::vector<char> temp_vector = std::get<3>(tuple_sample);
+    const std::vector<char> temp_vector = std::get<3>(tuple_sample);
     (void) temp_vector;
 
     // Getting array from a tuple
-    int first_elem_of_array = std::get<4>(tuple_sample)[0];
+    const char first_elem_of_array = std::get<4>(tuple_sample)[0];
     (void) first_elem_of_array;
 
     // Getting map from a tuple
-    std::map<char, char> temp_map = std::get<5>(tuple_sample);
+    const std::map<char, char> temp_map = std::get<5>(tuple_sample);
     (void) temp_map;
     printf("\n");  // end of demo
 }
@@ -709,7 +716,7 @@ class DemoSmartPtr {
     std::string smartPointerType;
 
     public:
-    DemoSmartPtr(std::string param_smartPointerType) {
+    DemoSmartPtr(const std::string &param_smartPointerType) {
         printf("[smart_ptr] In construct of object demo_smart_ptr  using %s. \n", param_smartPointerType.c_str());
         this->smartPointerType = param_smartPointerType;
     }
@@ -742,7 +749,7 @@ void ecall_shared_ptr_demo() {
     // std::unique_ptr is smart pointer that takes ownership of an object using a pointer
     // it is different from smart_ptr in the sense that only one unique_ptr can take ownership
 
-    std::unique_ptr<DemoSmartPtr> unique_ptr(new DemoSmartPtr("unique_ptr"));
+    const std::unique_ptr<DemoSmartPtr> unique_ptr(new DemoSmartPtr("unique_ptr"));
     // When going out of scope both shared_ptr and unique_ptr release the objects they own
 
     // end of demo
@@ -755,6 +762,7 @@ void ecall_shared_ptr_demo() {
 //                      the same object. Atomic objects are free of data races.
 // Demo description   : Demonstrates the usage of atomic types, objects and functions in enclave.
 void ecall_atomic_demo() {
+    // NOLINTBEGIN(google-runtime-int)
     printf("[atomic] Atomic types, objects and functions demo.\n");
 
     printf("[atomic_store] Defining an atomic_char object with an initial value of 5.\n");
@@ -776,56 +784,65 @@ void ecall_atomic_demo() {
     printf("\n");
 
     printf("[atomic_load] Defining an atomic_int object with an initial value of 4.\n");
-    std::atomic_int ati1(4);
+    const std::atomic_int ati1(4);
     printf("[atomic_load] Obtaining the value of the atomic object and saving it in a int variable.\n");
-    int val = std::atomic_load(&ati1);
+    const int val = std::atomic_load(&ati1);
     printf("[atomic_load] The obtained value is %d.\n", val);
 
     printf("\n");
 
     printf("[atomic_load_explicit] Defining an atomic_int object with an initial value of 2.\n");
-    std::atomic_int ati2(2);
+    const std::atomic_int ati2(2);
     printf("[atomic_load_explicit] Obtaining the value of the atomic object and saving it in a int variable.\n");
-    int val1 = std::atomic_load_explicit(&ati2, std::memory_order_seq_cst);
+    const int val1 = std::atomic_load_explicit(&ati2, std::memory_order_seq_cst);
     printf("[atomic_load_explicit] The obtained value is %d.\n", val1);
 
     printf("\n");
 
+    constexpr int INITIAL_INT = 7;
+    constexpr int UPDATED_INT = 8;
     printf("[atomic_fetch_add] Defining an atomic_int object with an initial value of 7.\n");
-    std::atomic_int ati(7);
+    std::atomic_int ati(INITIAL_INT);
     printf("[atomic_fetch_add] The current value stored in the atomic object is: %d.\n", ati.load());
     printf("[atomic_fetch_add] Adding a non-atomic value of 8 to the atomic object.\n");
-    std::atomic_fetch_add(&ati, 8);
+    std::atomic_fetch_add(&ati, UPDATED_INT);
     printf("[atomic_fetch_add] The new value of the atomic object is: %d.\n", ati.load());
 
     printf("\n");
 
+    constexpr unsigned INITIAL_UINT = 7;
+    constexpr unsigned UPDATED_UINT = 8;
     printf("[atomic_fetch_add_explicit] Defining an atomic_uint object with an initial value of 7.\n");
-    std::atomic_uint atui(7);
+    std::atomic_uint atui(INITIAL_UINT);
     printf("[atomic_fetch_add_explicit] The current value stored in the atomic object is: %u.\n", atui.load());
     printf("[atomic_fetch_add_explicit] Adding a non-atomic value of 8 to the atomic object.\n");
-    std::atomic_fetch_add_explicit<unsigned int>(&atui, 8, std::memory_order_seq_cst);
+    std::atomic_fetch_add_explicit<unsigned int>(&atui, UPDATED_UINT, std::memory_order_seq_cst);
     printf("[atomic_fetch_add_explicit] The new value of the atomic object is: %u.\n", atui.load());
 
     printf("\n");
 
+    constexpr long INITIAL_LONG = 20;
+    constexpr long UPDATED_LONG = 8;
     printf("[atomic_fetch_sub] Defining an atomic_long object with an initial value of 20.\n");
-    std::atomic_long atl(20);
+    std::atomic_long atl(INITIAL_LONG);
     printf("[atomic_fetch_sub] The current value stored in the atomic object is: %ld.\n", atl.load());
     printf("[atomic_fetch_sub] Substracting a non-atomic value of 8 from the value of the atomic object.\n");
-    std::atomic_fetch_sub<long>(&atl, 8);
+    std::atomic_fetch_sub<long>(&atl, UPDATED_LONG);
     printf("[atomic_fetch_sub] The new value of the atomic object is: %ld.\n", atl.load());
 
     printf("\n");
 
+    constexpr long long INITIAL_LLONG = 20;
+    constexpr long long UPDATED_LLONG = 8;
     printf("[atomic_fetch_sub_explicit] Defining an atomic_llong object with an initial value of 20.\n");
-    std::atomic_llong atll(20);
+    std::atomic_llong atll(INITIAL_LLONG);
     printf("[atomic_fetch_sub_explicit] The current value stored in the atomic object is: %lld.\n", atll.load());
     printf("[atomic_fetch_sub_explicit] Substracting a non-atomic value of 8 from the value of the atomic object.\n");
-    std::atomic_fetch_sub_explicit<long long>(&atll, 8, std::memory_order_seq_cst);
+    std::atomic_fetch_sub_explicit<long long>(&atll, UPDATED_LLONG, std::memory_order_seq_cst);
     printf("[atomic_fetch_sub_explicit] The new value of the atomic object is: %lld.\n", atll.load());
 
     printf("\n");  // end of demo
+    // NOLINTEND(google-runtime-int)
 }
 
 // Feature name        : mutex
@@ -835,20 +852,22 @@ void ecall_atomic_demo() {
 
 // Structure used in mutex demo to show the behavior without using a mutex
 struct CounterWithoutMutex {
-    int value;
+    int value = 0;
 
-    CounterWithoutMutex() : value(0) {}
+    CounterWithoutMutex() = default;
 
     void increment() {
         ++value;
     }
 };
 
-CounterWithoutMutex counter_without_protection;
+static CounterWithoutMutex counter_without_protection;
+
+static constexpr int RUNS = 100'000;
 
 // E-call used by mutex demo to perform the incrementation using a counter without mutex protection
 void ecall_mutex_demo_no_protection() {
-    for (int i = 0; i < 100'000; ++i) {
+    for (int i = 0; i < RUNS; ++i) {
         counter_without_protection.increment();
     }
 }
@@ -867,9 +886,9 @@ void ecall_print_final_value_no_protection() {
 // Structure used in mutex demo
 struct CounterProtectedByMutex {
     std::mutex mutex;
-    int value;
+    int value = 0;
 
-    CounterProtectedByMutex() : value(0) {}
+    CounterProtectedByMutex() = default;
 
     void increment() {
         // locking the mutex to avoid simultaneous incrementation in different threads
@@ -880,11 +899,11 @@ struct CounterProtectedByMutex {
     }
 };
 
-CounterProtectedByMutex counter_with_protection;
+static CounterProtectedByMutex counter_with_protection;
 
 // E-call used by mutex demo to perform the actual incrementation
 void ecall_mutex_demo() {
-    for (int i = 0; i < 100'000; ++i) {
+    for (int i = 0; i < RUNS; ++i) {
         counter_with_protection.increment();
     }
 }
@@ -924,14 +943,14 @@ class DemoConditionVariable {
         printf("[condition_variable] Loading Data...\n");
         {
             // Locking the data structure
-            std::lock_guard<std::mutex> guard(mtx);
+            const std::lock_guard<std::mutex> guard(mtx);
             // Setting the flag to true to signal load data completion
             data_loaded = true;
         }
         // Notify to unblock the waiting thread
         cond_var.notify_one();
     }
-    bool is_data_loaded() {
+    auto is_data_loaded() -> bool {
         return data_loaded;
     }
     void main_task() {
@@ -942,13 +961,13 @@ class DemoConditionVariable {
         std::unique_lock<std::mutex> lck(mtx);
 
         printf("[condition_variable] Waiting for the data to be loaded in the other thread.\n");
-        cond_var.wait(lck, std::bind(&DemoConditionVariable::is_data_loaded, this));
+        cond_var.wait(lck, [this] { return is_data_loaded(); });
         printf("[condition_variable] Processing the loaded data.\n");
         printf("[condition_variable] Done.\n");
     }
 };
 
-DemoConditionVariable app;
+static DemoConditionVariable app;
 
 // E-call used by condition_variable demo - processing thread
 
