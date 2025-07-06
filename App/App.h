@@ -34,14 +34,7 @@
 
 #include <cassert>
 #include <sgx_eid.h> /* sgx_enclave_id_t */
-
-#ifndef TRUE
-#    define TRUE 1
-#endif
-
-#ifndef FALSE
-#    define FALSE 0
-#endif
+#include <sgx_error.h>
 
 #if defined(__GNUC__)
 #    define ENCLAVE_FILENAME "enclave.signed.so"
@@ -49,8 +42,6 @@
 
 extern sgx_enclave_id_t global_eid; /* global enclave id */
 
-extern "C" {
-    void ecall_libcxx_functions(void);
-}
+auto ecall_libcxx_functions() -> sgx_status_t;
 
 #endif /* !APP_H */

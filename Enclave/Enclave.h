@@ -46,9 +46,7 @@
 #    define __clang__ 1  // NOLINT(bugprone-reserved-identifier,cert-dcl37-c)
 #endif
 
-extern "C" {
-    [[gnu::format(printf, 1, 2)]]
-    auto printf(const char *fmt, ...) -> int;
-}
+[[gnu::format(printf, 1, 2)]]
+auto printf(const char *fmt, ...) -> int;
 
 #endif /* !ENCLAVE_H */

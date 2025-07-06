@@ -36,17 +36,15 @@
 // clang-format on
 
 #include <array>
-#include <cassert>
-#include <cstdio>
-#include <cstring>
+#include <cstdlib>
+#include <iomanip>
+#include <iostream>
 #include <optional>
 #include <sgx_defs.h>
 #include <sgx_eid.h>
 #include <sgx_error.h>
 #include <sgx_urts.h>
 #include <string>
-
-#define MAX_PATH FILENAME_MAX
 
 #include "./App.h"
 #include "Enclave_u.h"
@@ -165,57 +163,45 @@ static void print_error_message(sgx_status_t ret) {
     const sgx_errlist_t err = error_message(ret);
 
     if (err.sug.has_value()) {
-        printf("Info: %s\n", err.sug.value().data());
+        std::cout << "Info: " << err.sug.value() << std::endl;
     }
-    printf("Error: %s (0x%4x)\n", err.msg.data(), err.err);
-}
-
-/* Initialize the enclave:
- *   Call sgx_create_enclave to initialize an enclave instance
- */
-static auto initialize_enclave() -> int {
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-
-    /* Call sgx_create_enclave to initialize an enclave instance */
-    /* Debug Support: set 2nd parameter to 1 */
-    ret = sgx_create_enclave(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, NULL, NULL, &global_eid, NULL);
-    if (ret != SGX_SUCCESS) {
-        print_error_message(ret);
-        return -1;
-    }
-
-    return 0;
+    std::cout << "Error: " << err.msg << " (0x" << std::hex << std::setw(4) << std::setfill('0') << err.err << ")"
+              << std::endl;
 }
 
 /* OCall functions */
-void ocall_print_string(const char *str) {
+extern void ocall_print_string(const char *str) {
     /* Proxy/Bridge will check the length and null-terminate
      * the input string to prevent buffer overflow.
      */
-    printf("%s", str);
+    std::cout << (str != nullptr ? str : "<null>");
 }
 
 /* Application entry */
-auto SGX_CDECL main(int argc, char *argv[]) -> int {
-    (void) (argc);
-    (void) (argv);
-
+auto SGX_CDECL main() -> int {
     /* Initialize the enclave */
-    if (initialize_enclave() < 0) {
-        printf("Enter a character before exit ...\n");
-        (void) getchar();
-        return -1;
+    /* Debug Support: set 2nd parameter to 1 */
+    sgx_status_t status = sgx_create_enclave(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, nullptr, nullptr, &global_eid, nullptr);
+    if (status != SGX_SUCCESS) {
+        print_error_message(status);
+        return EXIT_FAILURE;
     }
 
+    bool ok = true;
     /* Utilize trusted libraries */
-    ecall_libcxx_functions();
+    status = ecall_libcxx_functions();
+    if (status != SGX_SUCCESS) {
+        print_error_message(status);
+        ok = false;
+    }
 
     /* Destroy the enclave */
-    sgx_destroy_enclave(global_eid);
+    status = sgx_destroy_enclave(global_eid);
+    if (status != SGX_SUCCESS) {
+        print_error_message(status);
+        return EXIT_FAILURE;
+    }
 
-    printf("Info: Cxx11DemoEnclave successfully returned.\n");
-
-    // printf("Enter a character before exit ...\n");
-    // getchar();
-    return 0;
+    std::cout << "Info: Cxx11DemoEnclave successfully returned." << std::endl;
+    return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

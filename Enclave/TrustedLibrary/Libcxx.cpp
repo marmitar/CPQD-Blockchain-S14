@@ -443,7 +443,7 @@ class DemoBuffer {
         buffer = rhs.buffer;
         size = rhs.size;
         // reset state of rhs
-        rhs.buffer = NULL;
+        rhs.buffer = nullptr;
         rhs.size = 0;
         printf("[rvalue] Called move constructor : DemoBuffer(DemoBuffer && rhs).\n");
     }

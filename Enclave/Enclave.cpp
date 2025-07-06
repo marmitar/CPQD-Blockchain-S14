@@ -34,6 +34,7 @@
 #include <array>
 #include <cstdarg>
 #include <cstdio> /* vsnprintf */
+#include <sgx_error.h>
 
 #include "Enclave_t.h" /* print_string */
 
@@ -46,8 +47,12 @@ auto printf(const char *fmt, ...) -> int {
 
     va_list ap;
     va_start(ap, fmt);
-    (void) vsnprintf(buf.data(), BUFSIZ, fmt, ap);
+    (void) vsnprintf(buf.data(), buf.size(), fmt, ap);
     va_end(ap);
-    ocall_print_string(buf.data());
+
+    auto status = ocall_print_string(buf.data());
+    if (status != SGX_SUCCESS) {
+        return -1;
+    }
     return 0;
 }

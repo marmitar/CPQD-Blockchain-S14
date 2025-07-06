@@ -41,161 +41,157 @@
 
 // This function is part of mutex demo
 static void demo_counter_without_mutex() {
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_mutex_demo_no_protection(global_eid);
-    if (ret != SGX_SUCCESS) {
+    const sgx_status_t status = ecall_mutex_demo_no_protection(global_eid);
+    if (status != SGX_SUCCESS) {
         abort();
     }
 }
 
 // This function is part of mutex demo
 static void demo_counter_mutex() {
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_mutex_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
+    const sgx_status_t status = ecall_mutex_demo(global_eid);
+    if (status != SGX_SUCCESS) {
         abort();
     }
 }
 
 // This function is used by processing thread of condition variable demo
 static void demo_cond_var_run() {
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_condition_variable_run(global_eid);
-    if (ret != SGX_SUCCESS) {
+    const sgx_status_t status = ecall_condition_variable_run(global_eid);
+    if (status != SGX_SUCCESS) {
         abort();
     }
 }
 
 // This function is used by the loader thread of condition variable demo
 static void demo_cond_var_load() {
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-    ret = ecall_condition_variable_load(global_eid);
-    if (ret != SGX_SUCCESS) {
+    const sgx_status_t status = ecall_condition_variable_load(global_eid);
+    if (status != SGX_SUCCESS) {
         abort();
     }
 }
 
 // Examples for C++11 library and compiler features
-void ecall_libcxx_functions(void) {
-    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+auto ecall_libcxx_functions() -> sgx_status_t {
+    sgx_status_t status = SGX_ERROR_UNEXPECTED;
 
     // Example for lambda function feature:
-    ret = ecall_lambdas_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_lambdas_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for auto feature:
-    ret = ecall_auto_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_auto_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for decltype:
-    ret = ecall_decltype_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_decltype_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for strongly_typed_enum:
-    ret = ecall_strongly_typed_enum_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_strongly_typed_enum_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for range based for loops:
-    ret = ecall_range_based_for_loops_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_range_based_for_loops_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for static_assert:
-    ret = ecall_static_assert_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_static_assert_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for virtual function controls : override, final, default, and delete
-    ret = ecall_virtual_function_control_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_virtual_function_control_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for delegating_constructors:
-    ret = ecall_delegating_constructors_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_delegating_constructors_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for std::function:
-    ret = ecall_std_function_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_std_function_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for algorithms (std::all_of, std::any_of, std::none_of):
-    ret = ecall_cxx11_algorithms_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_cxx11_algorithms_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for variadic_templates feature:
-    ret = ecall_variadic_templates_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_variadic_templates_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for SFINAE:
-    ret = ecall_SFINAE_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_SFINAE_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for initializer_list:
-    ret = ecall_initializer_list_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_initializer_list_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for rvalue:
-    ret = ecall_rvalue_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_rvalue_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for nullptr:
-    ret = ecall_nullptr_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_nullptr_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for enum class:
-    ret = ecall_enum_class_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_enum_class_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for new container classes (unordered_set, unordered_map, unordered_multiset, and unordered_multimap):
-    ret = ecall_new_container_classes_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_new_container_classes_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for tuple:
-    ret = ecall_tuple_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_tuple_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // Example for shared_ptr:
-    ret = ecall_shared_ptr_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_shared_ptr_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
     // Example for atomic:
-    ret = ecall_atomic_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_atomic_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // The following threads are part of mutex demo
@@ -205,9 +201,9 @@ void ecall_libcxx_functions(void) {
     t1.join();
     t2.join();
     t3.join();
-    ret = ecall_print_final_value_no_protection(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_print_final_value_no_protection(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // The following threads are part of mutex demo
@@ -217,9 +213,9 @@ void ecall_libcxx_functions(void) {
     tm1.join();
     tm2.join();
     tm3.join();
-    ret = ecall_print_final_value_mutex_demo(global_eid);
-    if (ret != SGX_SUCCESS) {
-        abort();
+    status = ecall_print_final_value_mutex_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
     }
 
     // The following threads are part of condition variable demo
@@ -227,4 +223,5 @@ void ecall_libcxx_functions(void) {
     std::thread th2(demo_cond_var_load);
     th2.join();
     th1.join();
+    return status;
 }
