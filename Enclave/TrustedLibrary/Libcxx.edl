@@ -30,15 +30,11 @@
  */
 
 /* Libcxx.edl - EDL sample for trusted C++ library. */
-
 enclave {
-    
-    /* 
+    /*
      * A subset of the C++03 standard is supported.
      */
-
     trusted {
-       
 		public void ecall_lambdas_demo(void);
 		public void ecall_auto_demo(void);
 		public void ecall_decltype_demo(void);
@@ -54,7 +50,7 @@ enclave {
 		public void ecall_initializer_list_demo(void);
 		public void ecall_rvalue_demo(void);
 		public void ecall_nullptr_demo(void);
-                public void ecall_enum_class_demo(void);
+        public void ecall_enum_class_demo(void);
 		public void ecall_new_container_classes_demo(void);
 		public void ecall_tuple_demo(void);
 		public void ecall_shared_ptr_demo(void);
@@ -65,6 +61,5 @@ enclave {
 		public void ecall_print_final_value_no_protection(void);
 		public void ecall_condition_variable_run(void);
 		public void ecall_condition_variable_load(void);
-		
     };
 };
