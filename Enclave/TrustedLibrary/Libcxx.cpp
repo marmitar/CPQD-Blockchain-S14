@@ -29,9 +29,10 @@
  *
  */
 
-#include "../Enclave.h"  // must be included before the stdlib
+#include "../Enclave.hpp"  // must be included before the stdlib
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cinttypes>
 #include <condition_variable>
@@ -78,20 +79,19 @@ void ecall_lambdas_demo() {
     printf("[Lambdas] Initial array using lambdas: { ");
 
     // Print the elements in an array using lambdas
-    std::for_each(std::begin(v), std::end(v), [](int elem) { printf("%d ", elem); });  // capture specification
+    std::for_each(std::cbegin(v), std::cend(v), [](int elem) { printf("%d ", elem); });  // capture specification
     printf("}.\n");
 
     // Find the first odd number using lambda as an unary predicate when calling find_if.
-    auto first_odd_element = std::find_if(std::begin(v), std::end(v), [=](int elem) { return elem % 2 == 1; });
-
-    if (first_odd_element != std::end(v)) {
-        printf("[Lambdas] First odd element in the array is %d. \n", *first_odd_element);
+    auto first_odd_element = std::find_if(std::cbegin(v), std::cend(v), [=](int elem) { return elem % 2 == 1; });
+    if (first_odd_element != std::cend(v)) {
+        printf("[Lambdas] First odd element in the array is %d.\n", *first_odd_element);
     } else {
         printf("[Lambdas] No odd element found in the array.\n");
     }
 
     // Count the even numbers using a lambda function as an unary predicate when calling count_if.
-    auto number_of_even_elements = std::count_if(std::begin(v), std::end(v), [=](int val) { return val % 2 == 0; });
+    auto number_of_even_elements = std::count_if(std::cbegin(v), std::cend(v), [=](int val) { return val % 2 == 0; });
     printf("[Lambdas] Number of even elements in the array is %" PRIi64 ".\n", number_of_even_elements);
 
     // Sort the elements of an array using lambdas
@@ -99,8 +99,9 @@ void ecall_lambdas_demo() {
 
     // Print the elements in an array using lambdas
     printf("[Lambdas] Array after sort: { ");
-    std::for_each(std::begin(v), std::end(v), [](int elem) { printf("%d ", elem); });
-    printf("}. \n");
+    std::for_each(std::cbegin(v), std::cend(v), [](int elem) { printf("%d ", elem); });
+    printf("}.\n");
+
     printf("\n");  // end of demo
 }
 
@@ -108,9 +109,10 @@ void ecall_lambdas_demo() {
 // Feature description : It is used for type deduction
 // Demo description    : Shows basic usages of auto specifier with different types.
 
+[[gnu::nothrow]]
 // Helper function for ecall_auto_demo:
-static void sample_func_auto_demo() {
-    printf("[auto] Function sample_func_auto_demo is called. \n");
+static void sample_func_auto_demo() noexcept {
+    printf("[auto] Function sample_func_auto_demo is called.\n");
 }
 
 void ecall_auto_demo() {
@@ -120,22 +122,17 @@ void ecall_auto_demo() {
     printf("[auto] Type of a is int. typeid = %s.\n", typeid(a).name());
 
     const auto b1 = local_var;
-    const auto *b2 = &local_var;  // auto can be used with modifiers like const or &.
+    [[maybe_unused]] const auto *b2 = &local_var;  // auto can be used with modifiers like const or &.
     printf("[auto] Type of b1 is const double. typeid = %s.\n", typeid(b1).name());
     printf("[auto] Type of b2 is const double*. typeid = %s.\n", typeid(b2).name());
-    (void) b1;
-    (void) b2;
 
     auto c = 0;
-    const auto *d = &a;  // multiple variable initialization if the deduced type does match
+    [[maybe_unused]] const auto *d = &a;  // multiple variable initialization if the deduced type does match
     printf("[auto] Type of c is int. typeid = %s.\n", typeid(c).name());
     printf("[auto] Type of d is int*. typeid = %s.\n", typeid(d).name());
-    (void) c;
-    (void) d;
 
     auto lambda = [] {};  // can be used to define lambdas
     printf("[auto] Type of lambda is [] {}. typeid = %s.\n", typeid(lambda).name());
-    (void) lambda;
 
     auto func = sample_func_auto_demo;  // can be used to deduce type of function
     printf("[auto] Type of func is void(__cdecl*)(void). typeid = %s.\n", typeid(func).name());
@@ -157,8 +154,7 @@ void ecall_decltype_demo() {
     // most usefull in templates.
     const decltype(a + c) sum = a + c;
     printf("[decltype] Type of sum is double. typeid = %s.\n", typeid(sum).name());
-    (void) sum;
-    (void) b;
+
     printf("\n");  // end of demo
 }
 
@@ -179,8 +175,7 @@ void ecall_strongly_typed_enum_demo() {
     };
 
     // initialization of variable of type DaysOfWeek
-    const DaysOfWeek random_day = DaysOfWeek::MONDAY;
-    (void) random_day;
+    [[maybe_unused]] const DaysOfWeek random_day = DaysOfWeek::MONDAY;
 
     // In is not mandatory to specify the underlying type.
     enum class Weekend {  // NOLINT(performance-enum-size)
@@ -205,7 +200,7 @@ void ecall_range_based_for_loops_demo() {
     for (auto elem : array_of_letters) {
         printf("%c ", elem);
     }
-    printf("}. \n");
+    printf("}.\n");
 
     printf("[range_based_for_loops] Using range based for loops to print the content of an vector: { ");
     for (auto elem : vector_of_letters) {
@@ -253,7 +248,7 @@ class Derived : Base {
     */
 
     /*The keyword override assures that the function overrides a base class member*/
-    void f_must_be_overrided() override {}
+    void f_must_be_overrided() noexcept override {}
 };
 
 void ecall_virtual_function_control_demo() {
@@ -281,10 +276,10 @@ class DemoDelegatingConstructors {
         /*common initialization*/
         switch (c) {
             case 1:
-                printf("[delegating constructors] Called from DemoDelegatingConstructors(int a, int b). \n");
+                printf("[delegating constructors] Called from DemoDelegatingConstructors(int a, int b).\n");
                 break;
             case 2:
-                printf("[delegating constructors] Called from DemoDelegatingConstructors(int a). \n");
+                printf("[delegating constructors] Called from DemoDelegatingConstructors(int a).\n");
                 break;
             default:
                 printf("[delegating constructors] Called from DemoDelegatingConstructors(int a, int b, int c).\n");
@@ -307,8 +302,9 @@ void ecall_delegating_constructors_demo() {
 // Feature description : It is used to store and invoke a callable
 // Demo description    : Shows basic usage of std::function
 
+[[gnu::nothrow]]
 // Helper class for ecall_std_function_demo:
-static void sample_std_function1() {
+static void sample_std_function1() noexcept {
     printf("[std_function] calling sample_std_function1\n");
 }
 
@@ -328,15 +324,15 @@ void ecall_std_function_demo() {
 // Feature description : New C++11 algorithms
 // Demo description    : Shows basic usage of the std::all_of, std::any_of, std::none_of.
 void ecall_cxx11_algorithms_demo() {
-    std::vector<int> v = {0, 1, 2, 3, 4, 5};
-    const bool are_all_of = all_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
-    printf("[cxx11_algorithms] All elements in  { 0 1 2  3 4 5 } are even is  %s. \n", are_all_of ? "true" : "false");
+    const std::vector<int> v = {0, 1, 2, 3, 4, 5};
+    const bool are_all_of = std::all_of(std::cbegin(v), std::cend(v), [](int e) { return e % 2 == 0; });
+    printf("[cxx11_algorithms] All elements in  { 0 1 2  3 4 5 } are even is  %s.\n", are_all_of ? "true" : "false");
 
-    const bool are_any_of = any_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
-    printf("[cxx11_algorithms] Some elements in  { 0 1 2 3 4 5 } are even is  %s. \n", are_any_of ? "true" : "false");
+    const bool are_any_of = std::any_of(std::cbegin(v), std::cend(v), [](int e) { return e % 2 == 0; });
+    printf("[cxx11_algorithms] Some elements in  { 0 1 2 3 4 5 } are even is  %s.\n", are_any_of ? "true" : "false");
 
-    const bool are_none_of = none_of(begin(v), end(v), [](int e) { return e % 2 == 0; });
-    printf("[cxx11_algorithms] None elements in  { 0 1 2 3 4 5 } are even is  %s. \n", are_none_of ? "true" : "false");
+    const bool are_none_of = std::none_of(std::cbegin(v), std::cend(v), [](int e) { return e % 2 == 0; });
+    printf("[cxx11_algorithms] None elements in  { 0 1 2 3 4 5 } are even is  %s.\n", are_none_of ? "true" : "false");
 
     printf("\n");  // end of demo
 }
@@ -345,18 +341,22 @@ void ecall_cxx11_algorithms_demo() {
 // Feature description : Templates that can have multiple arguments
 // Demo description    : Shows basic usage of variadic templates
 
+template <typename T>
+[[gnu::const, nodiscard("pure function")]]
 // Helper template for ecall_variadic_templates_demo:
-template <typename T> static auto sum(T elem) -> T {
+static auto sum(T elem) -> T {
     return elem;
 }
 
-template <typename T, typename... Args> static auto sum(T elem1, T elem2, Args... args) -> T {
-    return elem1 + elem2 + sum(args...);
+template <typename T, typename... Args>
+[[gnu::const, nodiscard("pure function")]]
+static auto sum(T elem1, Args... rest) -> T {
+    return elem1 + sum(rest...);
 }
 
 void ecall_variadic_templates_demo() {
     const int computed_sum = sum(1, 2, 3, 4, 5);
-    printf("[variadic_templates] The sum  of paramters (1, 2, 3, 4, 5) is %d. \n", computed_sum);
+    printf("[variadic_templates] The sum of parameters (1, 2, 3, 4, 5) is %d.\n", computed_sum);
     printf("\n");  // end of demo
 }
 
@@ -365,12 +365,16 @@ void ecall_variadic_templates_demo() {
 // Demo description    : Shows basic usage of SFINAE
 
 /*first candidate for substitution*/
-template <typename T> static void f(typename T::A * /*unused*/) {
+template <typename T>
+[[gnu::nothrow]]
+static void f(typename T::A * /*unused*/) noexcept {
     printf("[sfinae] First candidate for substitution is matched.\n");
 }
 
 /*second candidate for substitution*/
-template <typename T> static void f(T /*unused*/) {
+template <typename T>
+[[gnu::nothrow]]
+static void f(T /*unused*/) noexcept {
     printf("[sfinae] Second candidate for substitution is matched.\n");
 }
 
@@ -386,14 +390,14 @@ void ecall_SFINAE_demo() {
 class Number {
     public:
     Number(const std::initializer_list<int> &v) {
-        for (auto i : v) {
+        for (const auto &i : v) {
             elements.push_back(i);
         }
     }
 
-    void print_elements() const {
+    void print_elements() const noexcept {
         printf("[initializer_list] The elements of the vector are:");
-        for (auto item : elements) {
+        for (const auto &item : elements) {
             printf(" %d", item);
         }
         printf(".\n");
@@ -404,7 +408,7 @@ class Number {
 };
 
 void ecall_initializer_list_demo() {
-    printf("[initializer_list] Using initializer list in the constructor. \n");
+    printf("[initializer_list] Using initializer list in the constructor.\n");
     const Number m = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
     m.print_elements();
 
@@ -415,13 +419,13 @@ void ecall_initializer_list_demo() {
 // Feature description : They are used for memory usage optimazation by eliminating copy operations
 // Demo description    : Shows basic usage of rvalue, move constructor, and move operator
 
-static constexpr unsigned INITIAL_SIZE = 100;
+static constexpr inline unsigned INITIAL_SIZE = 100;
 
 // Helper class for ecall_rvalue_demo
 class DemoBuffer {
     public:
     unsigned int size = INITIAL_SIZE;
-    char *buffer;
+    char *buffer = nullptr;
 
     DemoBuffer(unsigned int param_size) {
         this->size = param_size;
@@ -433,13 +437,13 @@ class DemoBuffer {
     // Copying an big array is an expensive operation
     DemoBuffer(const DemoBuffer &rhs) {
         this->size = rhs.size;
-        buffer = new char[rhs.size];
-        memcpy(buffer, rhs.buffer, size);
+        buffer = new char[size];
+        std::memcpy(buffer, rhs.buffer, sizeof(char) * size);
         printf("[rvalue] Called copy constructor : DemoBuffer(const DemoBuffer & rhs).\n");
     }
 
     // A typical move constructor can reuse the memory pointed by the buffer
-    DemoBuffer(DemoBuffer &&rhs) {
+    DemoBuffer(DemoBuffer &&rhs) noexcept {
         buffer = rhs.buffer;
         size = rhs.size;
         // reset state of rhs
@@ -447,11 +451,13 @@ class DemoBuffer {
         rhs.size = 0;
         printf("[rvalue] Called move constructor : DemoBuffer(DemoBuffer && rhs).\n");
     }
+
     ~DemoBuffer() {
         delete[] buffer;
     }
 };
 
+[[gnu::const, nodiscard("pure function")]]
 // Helper class for ecall_rvalue_demo
 static auto foobar(int a) -> DemoBuffer {
     DemoBuffer x(INITIAL_SIZE);
@@ -469,7 +475,7 @@ void ecall_rvalue_demo() {
     printf("[rvalue] DemoBuffer a(100).\n");
     DemoBuffer a(INITIAL_SIZE);
 
-    printf("[rvalue] DemoBuffer foobar(100). \n");
+    printf("[rvalue] DemoBuffer foobar(100).\n");
     // Initializing variable d using a temporary object will result in a call to move constructor
     // This is usefull because it reduces the memory cost of the operation.
     const DemoBuffer d(foobar(INITIAL_SIZE));
@@ -491,14 +497,12 @@ void ecall_rvalue_demo() {
 // Demo description    : Shows basic usage of nullptr
 
 // overload candidate 1
-static void nullptr_overload_candidate(int i) {
-    (void) i;
+static void nullptr_overload_candidate([[maybe_unused]] int i) noexcept {
     printf("[nullptr] called void nullptr_overload_candidate(int i).\n");
 }
 
 // overload candidate 2
-static void nullptr_overload_candidate(const int *ptr) {
-    (void) ptr;
+static void nullptr_overload_candidate([[maybe_unused]] const int *ptr) noexcept {
     printf("[nullptr] called void nullptr_overload_candidate(int* ptr).\n");
 }
 
@@ -506,8 +510,7 @@ template <class F, class A> static void Fwd(F f, A a) {
     f(a);
 }
 
-static void g(const int *i) {
-    (void) i;
+static void g([[maybe_unused]] const int *i) noexcept {
     printf("[nullptr] Function %s called\n", __FUNCTION__);
 }
 
@@ -615,11 +618,11 @@ void ecall_new_container_classes_demo() {
     // unordered_set
     // container used for fast acces that groups elements in buckets based on their hash
 
-    std::unordered_set<int> set_of_numbers = {0, 1, 2, 3, 4, 5};
+    const std::unordered_set<int> set_of_numbers {0, 1, 2, 3, 4, 5};
     const int searchVal = 3;
     auto got = set_of_numbers.find(searchVal);
 
-    if (got != set_of_numbers.end()) {
+    if (got != set_of_numbers.cend()) {
         printf("[new_container_classes] unordered_set { 0, 1, 2, 3, 4, 5} has value 3.\n");
     } else {
         printf("[new_container_classes] unordered_set { 0, 1, 2, 3, 4, 5} does not have value 3.\n");
@@ -629,8 +632,8 @@ void ecall_new_container_classes_demo() {
     // container used for fast acces that groups non unique elements in buckets based on their hash
     const std::unordered_multiset<int> multiset_of_numbers = {0, 1, 2, 3, 3, 3};
     printf(
-        "[new_container_classes] multiset_set { 0, 1, 2, 3, 3, 3}  has %d elements with value %d.\n",
-        (int) multiset_of_numbers.count(searchVal),
+        "[new_container_classes] multiset_set { 0, 1, 2, 3, 3, 3}  has %zu elements with value %d.\n",
+        multiset_of_numbers.count(searchVal),
         searchVal
     );
 
@@ -643,8 +646,8 @@ void ecall_new_container_classes_demo() {
         {"E",  3}
     };
     printf("[new_container_classes] unordered_map elements: {");
-    for (const auto &pair : grades) {
-        printf("[%s %d] ", pair.first.c_str(), pair.second);
+    for (const auto &[key, value] : grades) {
+        printf("[%s %d] ", key.c_str(), value);
     }
 
     printf("}.\n");
@@ -660,8 +663,8 @@ void ecall_new_container_classes_demo() {
     };
 
     printf("[new_container_classes] unordered_multimap elements: {");
-    for (const auto &pair : multimap_grades) {
-        printf("[%s %d] ", pair.first.c_str(), pair.second);
+    for (const auto &[key, value] : multimap_grades) {
+        printf("[%s %d] ", key.c_str(), value);
     }
     printf("}.\n");
 
@@ -673,16 +676,18 @@ void ecall_new_container_classes_demo() {
 // Demo description    : Shows basic usage of tuple: creation and access
 void ecall_tuple_demo() {
     // Create tuple using std::make_tuple
-    char array_of_letters[4] = {'A', 'B', 'C', 'D'};
-    const std::vector<char> vector_of_letters = {'A', 'B', 'C', 'D'};
-    const std::map<char, char> map_of_letters = {
+    const std::array<char, 4> array_of_letters {'A', 'B', 'C', 'D'};
+    const std::vector<char> vector_of_letters {'A', 'B', 'C', 'D'};
+    const std::map<char, char> map_of_letters {
         {'B', 'b'}
     };
 
     // Creating a tuple using a tuple constructor
     constexpr int answer_to_life_unverse_everything = 42;
-    const std::tuple<int, std::string> tuple_sample_with_constructor(answer_to_life_unverse_everything, "Sample tuple");
-    (void) tuple_sample_with_constructor;
+    [[maybe_unused]] const std::tuple<int, std::string> tuple_sample_with_constructor(
+        answer_to_life_unverse_everything,
+        "Sample tuple"
+    );
 
     // Creating a tuple using std::make_tuple
     constexpr double val = 7.9;
@@ -690,21 +695,19 @@ void ecall_tuple_demo() {
         std::make_tuple("<First element of TupleSample>", 1, val, vector_of_letters, array_of_letters, map_of_letters);
 
     // Access the elements in tupleSample using std::get<index>
-    printf("[tuple] show first  element in TupleSample: %s. \n", std::get<0>(tuple_sample));
-    printf("[tuple] show second element in TupleSample: %d. \n", std::get<1>(tuple_sample));
-    printf("[tuple] show third  element in TupleSample: %f. \n", std::get<2>(tuple_sample));
+    printf("[tuple] show first  element in TupleSample: %s.\n", std::get<0>(tuple_sample));
+    printf("[tuple] show second element in TupleSample: %d.\n", std::get<1>(tuple_sample));
+    printf("[tuple] show third  element in TupleSample: %f.\n", std::get<2>(tuple_sample));
 
     // Getting vector from a tuple
-    const std::vector<char> temp_vector = std::get<3>(tuple_sample);
-    (void) temp_vector;
+    [[maybe_unused]] const std::vector<char> temp_vector = std::get<3>(tuple_sample);
 
     // Getting array from a tuple
-    const char first_elem_of_array = std::get<4>(tuple_sample)[0];
-    (void) first_elem_of_array;
+    [[maybe_unused]] const char first_elem_of_array = std::get<4>(tuple_sample)[0];
 
     // Getting map from a tuple
-    const std::map<char, char> temp_map = std::get<5>(tuple_sample);
-    (void) temp_map;
+    [[maybe_unused]] const std::map<char, char> temp_map = std::get<5>(tuple_sample);
+
     printf("\n");  // end of demo
 }
 
@@ -716,12 +719,13 @@ class DemoSmartPtr {
     std::string smartPointerType;
 
     public:
-    DemoSmartPtr(const std::string &param_smartPointerType) {
-        printf("[smart_ptr] In construct of object demo_smart_ptr  using %s. \n", param_smartPointerType.c_str());
+    DemoSmartPtr(const std::string &param_smartPointerType) noexcept {
+        printf("[smart_ptr] In construct of object demo_smart_ptr using %s.\n", param_smartPointerType.c_str());
         this->smartPointerType = param_smartPointerType;
     }
-    ~DemoSmartPtr() {
-        printf("[smart_ptr] In deconstructor of object demo_smart_ptr using %s. \n", smartPointerType.c_str());
+
+    ~DemoSmartPtr() noexcept {
+        printf("[smart_ptr] In deconstructor of object demo_smart_ptr using %s.\n", smartPointerType.c_str());
     }
 };
 
@@ -730,11 +734,9 @@ void ecall_shared_ptr_demo() {
     // The object is freed when the last smart_pointer does not point to it.
 
     // Creating a shared pointer using std::make_shared
-    auto shared_ptr = std::make_shared<DemoSmartPtr>(
-        "smart_ptr."
-    );  // The constructor of DemoSmartPtr will be called here
+    auto shared_ptr = std::make_shared<DemoSmartPtr>("smart_ptr.");  // Constructor of DemoSmartPtr will be called here
 
-    printf("[smart_ptr] shared_ptr reference count = %ld.  \n", shared_ptr.use_count());
+    printf("[smart_ptr] shared_ptr reference count = %ld. \n", shared_ptr.use_count());
     auto shared_ptr2 = shared_ptr;
     printf(
         "[smart_ptr] shared_ptr reference count = %ld incresead after creating another shared pointer.\n",
@@ -742,7 +744,7 @@ void ecall_shared_ptr_demo() {
     );
     shared_ptr2.reset();
     printf(
-        "[smart_ptr] shared_ptr reference count = %ld decresead after calling releasing ownership. \n",
+        "[smart_ptr] shared_ptr reference count = %ld decresead after calling releasing ownership.\n",
         shared_ptr.use_count()
     );
 
@@ -854,20 +856,20 @@ void ecall_atomic_demo() {
 struct CounterWithoutMutex {
     int value = 0;
 
-    CounterWithoutMutex() = default;
+    CounterWithoutMutex() noexcept = default;
 
-    void increment() {
+    void increment() noexcept {
         ++value;
     }
 };
 
 static CounterWithoutMutex counter_without_protection;
 
-static constexpr int RUNS = 100'000;
+static constexpr inline std::size_t RUNS = 100'000;
 
 // E-call used by mutex demo to perform the incrementation using a counter without mutex protection
 void ecall_mutex_demo_no_protection() {
-    for (int i = 0; i < RUNS; ++i) {
+    for (std::size_t i = 0; i < RUNS; ++i) {
         counter_without_protection.increment();
     }
 }
@@ -892,10 +894,9 @@ struct CounterProtectedByMutex {
 
     void increment() {
         // locking the mutex to avoid simultaneous incrementation in different threads
-        mutex.lock();
+        const std::lock_guard<std::mutex> guard(mutex);
         ++value;
         // unlocking the mutex
-        mutex.unlock();
     }
 };
 
@@ -903,7 +904,7 @@ static CounterProtectedByMutex counter_with_protection;
 
 // E-call used by mutex demo to perform the actual incrementation
 void ecall_mutex_demo() {
-    for (int i = 0; i < RUNS; ++i) {
+    for (std::size_t i = 0; i < RUNS; ++i) {
         counter_with_protection.increment();
     }
 }
@@ -935,9 +936,10 @@ class DemoConditionVariable {
     bool data_loaded;
 
     public:
-    DemoConditionVariable() {
+    DemoConditionVariable() noexcept {
         data_loaded = false;
     }
+
     void load_data() {
         // Simulating loading of the data
         printf("[condition_variable] Loading Data...\n");
@@ -950,9 +952,12 @@ class DemoConditionVariable {
         // Notify to unblock the waiting thread
         cond_var.notify_one();
     }
-    auto is_data_loaded() -> bool {
+
+    [[nodiscard("pure function"), gnu::const]]
+    auto is_data_loaded() const noexcept -> bool {
         return data_loaded;
     }
+
     void main_task() {
         printf("\n");
         printf("[condition_variable] Running condition variable demo.\n");
@@ -970,7 +975,6 @@ class DemoConditionVariable {
 static DemoConditionVariable app;
 
 // E-call used by condition_variable demo - processing thread
-
 void ecall_condition_variable_run() {
     app.main_task();
 }

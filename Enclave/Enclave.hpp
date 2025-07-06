@@ -29,8 +29,8 @@
  *
  */
 
-#ifndef ENCLAVE_H
-#define ENCLAVE_H
+#ifndef ENCLAVE_HPP
+#define ENCLAVE_HPP
 
 // clang-format off
 #if __cplusplus < 202300L
@@ -46,7 +46,7 @@
 #    define __clang__ 1  // NOLINT(bugprone-reserved-identifier,cert-dcl37-c)
 #endif
 
-[[gnu::format(printf, 1, 2), gnu::nothrow, gnu::leaf]]
+[[gnu::format(printf, 1, 2), gnu::nonnull(1), gnu::nothrow, gnu::leaf]]
 auto printf(const char *fmt, ...) noexcept -> int;
 
-#endif /* !ENCLAVE_H */
+#endif /* !ENCLAVE_HPP */

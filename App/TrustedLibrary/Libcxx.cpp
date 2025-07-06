@@ -32,7 +32,7 @@
 #include <sgx_error.h>
 #include <thread>
 
-#include "../App.h"
+#include "../App.hpp"
 #include "Enclave_u.h"
 
 /* ecall_libcxx_functions:
@@ -40,7 +40,7 @@
  */
 
 // This function is part of mutex demo
-static void demo_counter_without_mutex() {
+static void demo_counter_without_mutex() noexcept {
     const sgx_status_t status = ecall_mutex_demo_no_protection(global_eid);
     if (status != SGX_SUCCESS) {
         abort();
@@ -48,7 +48,7 @@ static void demo_counter_without_mutex() {
 }
 
 // This function is part of mutex demo
-static void demo_counter_mutex() {
+static void demo_counter_mutex() noexcept {
     const sgx_status_t status = ecall_mutex_demo(global_eid);
     if (status != SGX_SUCCESS) {
         abort();
@@ -56,7 +56,7 @@ static void demo_counter_mutex() {
 }
 
 // This function is used by processing thread of condition variable demo
-static void demo_cond_var_run() {
+static void demo_cond_var_run() noexcept {
     const sgx_status_t status = ecall_condition_variable_run(global_eid);
     if (status != SGX_SUCCESS) {
         abort();
@@ -64,7 +64,7 @@ static void demo_cond_var_run() {
 }
 
 // This function is used by the loader thread of condition variable demo
-static void demo_cond_var_load() {
+static void demo_cond_var_load() noexcept {
     const sgx_status_t status = ecall_condition_variable_load(global_eid);
     if (status != SGX_SUCCESS) {
         abort();

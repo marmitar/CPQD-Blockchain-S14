@@ -36,21 +36,23 @@
 // clang-format on
 
 #include <array>
+#include <cstdint>
 #include <cstdlib>
-#include <iomanip>
+#include <format>
 #include <iostream>
 #include <optional>
 #include <sgx_defs.h>
 #include <sgx_eid.h>
 #include <sgx_error.h>
 #include <sgx_urts.h>
+#include <string>
 #include <string_view>
 
-#include "./App.h"
+#include "./App.hpp"
 #include "Enclave_u.h"
 
 /* Global EID shared by multiple threads */
-sgx_enclave_id_t global_eid = 0;
+sgx_enclave_id_t global_eid = static_cast<sgx_enclave_id_t>(-1);
 
 using sgx_errlist_t = struct sgx_errlist_t {
     sgx_status_t err;
@@ -149,7 +151,7 @@ static constexpr std::array<sgx_errlist_t, 17> sgx_errlist {
 
 [[gnu::const, nodiscard("pure function")]]
 /** Map error code to message. */
-static auto error_message(sgx_status_t ret) -> sgx_errlist_t {
+static constexpr auto error_message(sgx_status_t ret) noexcept -> sgx_errlist_t {
     for (const auto &idx : sgx_errlist) {
         if (ret == idx.err) {
             return idx;
@@ -165,8 +167,9 @@ static void print_error_message(sgx_status_t ret) {
     if (err.sug.has_value()) {
         std::cout << "Info: " << err.sug.value() << std::endl;
     }
-    std::cout << "Error: " << err.msg << " (0x" << std::hex << std::setw(4) << std::setfill('0') << err.err << ")"
-              << std::endl;
+
+    const std::string error_code = std::format("0x{:04x}", static_cast<std::uint64_t>(err.err));
+    std::cout << "Error: " << err.msg << " (" << error_code << ")" << std::endl;
 }
 
 /* OCall functions */
@@ -179,19 +182,19 @@ extern void ocall_print_string(const char *str) {
 
 /* Application entry */
 auto SGX_CDECL main(const int argc, const char *argv[]) -> int {
-    const char *enclave = ENCLAVE_FILENAME;
+    std::string enclave = ENCLAVE_FILENAME;
     // accept an optional argument for the enclave file
     if (argc == 2) {
         enclave = argv[1];
     } else if (argc > 2) {
-        std::cout << "Error: too many arguments" << std::endl;
+        std::cout << "Error: " << "too many arguments." << std::endl;
         std::cout << argv[0] << ": [SIGNED_ENCLAVE.SO]" << std::endl;
         return EXIT_FAILURE;
     }
 
     /* Initialize the enclave */
     /* Debug Support: set 2nd parameter to 1 */
-    sgx_status_t status = sgx_create_enclave(enclave, SGX_DEBUG_FLAG, nullptr, nullptr, &global_eid, nullptr);
+    sgx_status_t status = sgx_create_enclave(enclave.c_str(), SGX_DEBUG_FLAG, nullptr, nullptr, &global_eid, nullptr);
     if (status != SGX_SUCCESS) {
         print_error_message(status);
         return EXIT_FAILURE;
@@ -212,6 +215,6 @@ auto SGX_CDECL main(const int argc, const char *argv[]) -> int {
         return EXIT_FAILURE;
     }
 
-    std::cout << "Info: Cxx11DemoEnclave successfully returned." << std::endl;
+    std::cout << "Info: " << "Cxx11DemoEnclave successfully returned." << std::endl;
     return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

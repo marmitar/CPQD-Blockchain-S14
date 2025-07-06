@@ -29,8 +29,8 @@
  *
  */
 
-#ifndef APP_H
-#define APP_H
+#ifndef APP_HPP
+#define APP_HPP
 
 #include <cassert>
 #include <sgx_eid.h> /* sgx_enclave_id_t */
@@ -42,6 +42,7 @@
 
 extern sgx_enclave_id_t global_eid; /* global enclave id */
 
+[[nodiscard("error must be checked"), gnu::leaf]]
 auto ecall_libcxx_functions() -> sgx_status_t;
 
-#endif /* !APP_H */
+#endif /* !APP_HPP */

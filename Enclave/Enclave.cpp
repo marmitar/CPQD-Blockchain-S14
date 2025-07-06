@@ -29,7 +29,7 @@
  *
  */
 
-#include "./Enclave.h"  // must be included before the stdlib
+#include "./Enclave.hpp"  // must be included before the stdlib
 
 #include <algorithm>
 #include <array>
@@ -46,15 +46,16 @@
 auto printf(const char *fmt, ...) noexcept -> int {
     std::array<char, BUFSIZ> buf = {'\0'};
 
-    va_list ap;
+    std::va_list ap;
     va_start(ap, fmt);
     const int written = vsnprintf(buf.data(), buf.size(), fmt, ap);
     va_end(ap);
-    if (written < 0) {
+
+    if (written <= 0) {
         return written;
     }
 
-    auto status = ocall_print_string(buf.data());
+    const sgx_status_t status = ocall_print_string(buf.data());
     if (status != SGX_SUCCESS) {
         return -1;
     }
