@@ -147,6 +147,12 @@ auto ecall_libcxx_functions() -> sgx_status_t {
         return status;
     }
 
+    // Example for SFINAE:
+    status = ecall_concepts_demo(global_eid);
+    if (status != SGX_SUCCESS) {
+        return status;
+    }
+
     // Example for initializer_list:
     status = ecall_initializer_list_demo(global_eid);
     if (status != SGX_SUCCESS) {

@@ -47,6 +47,7 @@ enclave {
 		public void ecall_cxx11_algorithms_demo(void);
 		public void ecall_variadic_templates_demo(void);
 		public void ecall_SFINAE_demo(void);
+		public void ecall_concepts_demo(void);
 		public void ecall_initializer_list_demo(void);
 		public void ecall_rvalue_demo(void);
 		public void ecall_nullptr_demo(void);

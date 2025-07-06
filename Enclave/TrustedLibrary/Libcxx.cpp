@@ -367,19 +367,47 @@ void ecall_variadic_templates_demo() {
 /*first candidate for substitution*/
 template <typename T>
 [[gnu::nothrow]]
-static void f(typename T::A * /*unused*/) noexcept {
+static void f1(typename T::A * /*unused*/) noexcept {
     printf("[sfinae] First candidate for substitution is matched.\n");
 }
 
 /*second candidate for substitution*/
 template <typename T>
 [[gnu::nothrow]]
-static void f(T /*unused*/) noexcept {
+static void f1(T /*unused*/) noexcept {
     printf("[sfinae] Second candidate for substitution is matched.\n");
 }
 
 void ecall_SFINAE_demo() {
-    f<int>(0x0);   // even if the first canditate substition will fail, the second one will pass
+    f1<int>(0x0);   // even if the first canditate substition will fail, the second one will pass
+    printf("\n");  // end of demo
+}
+
+// Feature name        : Concepts
+// Feature description : Use conceppts and requires clauses to select the template overload
+// Demo description    : Shows basic usage of concepts and requries
+
+// Define a concept that checks if T has a nested type A
+template <typename T>
+concept HasNestedA = requires { typename T::A; };
+
+/*first candidate for substitution*/
+template <typename T>
+requires HasNestedA<T>
+[[gnu::nothrow]]
+static void f2(typename T::A * /*unused*/) noexcept {
+    printf("[concepts] First candidate for substitution is matched.\n");
+}
+
+/*second candidate for substitution*/
+template <typename T>
+[[gnu::nothrow]]
+static void f2(T /*unused*/) noexcept {
+    printf("[concepts] Second candidate for substitution is matched.\n");
+}
+
+void ecall_concepts_demo() {
+    f2<int>(0x0);   // even if the first canditate substition will fail, the second one will pass
     printf("\n");  // end of demo
 }
 

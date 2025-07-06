@@ -84,6 +84,7 @@ trusted_enclave = custom_target('trusted-enclave',
         '@INPUT@'
     ],
     input: files('Enclave.edl'),
+    depend_files: files('TrustedLibrary/Libcxx.edl'),
     output: ['Enclave_t.c', 'Enclave_t.h'],
 )
 
@@ -97,6 +98,7 @@ untrusted_enclave = custom_target('untrusted-enclave',
         '@INPUT@'
     ],
     input: files('Enclave.edl'),
+    depend_files: files('TrustedLibrary/Libcxx.edl'),
     output: ['Enclave_u.c', 'Enclave_u.h'],
 )
 
