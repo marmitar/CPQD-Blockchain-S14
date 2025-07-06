@@ -1,3 +1,0 @@
-DeliveryName	InstallName	FileCheckSum	FileFeature	FileOwner
-<deliverydir>/external/dcap_source/QuoteGeneration/build/linux/libsgx_tdx_logic.so	<installdir>/lib/libsgx_tdx_logic.so	0	main	STP
-

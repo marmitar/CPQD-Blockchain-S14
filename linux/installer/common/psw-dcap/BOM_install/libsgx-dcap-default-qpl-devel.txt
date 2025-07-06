@@ -1,1 +1,0 @@
-DeliveryName	InstallName	FileCheckSum	FileFeature	FileOwner
