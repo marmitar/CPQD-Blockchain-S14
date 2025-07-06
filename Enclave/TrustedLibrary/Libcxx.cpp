@@ -379,7 +379,7 @@ static void f1(T /*unused*/) noexcept {
 }
 
 void ecall_SFINAE_demo() {
-    f1<int>(0x0);   // even if the first canditate substition will fail, the second one will pass
+    f1<int>(0x0);  // even if the first canditate substition will fail, the second one will pass
     printf("\n");  // end of demo
 }
 
@@ -393,7 +393,7 @@ concept HasNestedA = requires { typename T::A; };
 
 /*first candidate for substitution*/
 template <typename T>
-requires HasNestedA<T>
+    requires HasNestedA<T>
 [[gnu::nothrow]]
 static void f2(typename T::A * /*unused*/) noexcept {
     printf("[concepts] First candidate for substitution is matched.\n");
@@ -407,7 +407,7 @@ static void f2(T /*unused*/) noexcept {
 }
 
 void ecall_concepts_demo() {
-    f2<int>(0x0);   // even if the first canditate substition will fail, the second one will pass
+    f2<int>(0x0);  // even if the first canditate substition will fail, the second one will pass
     printf("\n");  // end of demo
 }
 
