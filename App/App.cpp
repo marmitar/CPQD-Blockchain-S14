@@ -178,10 +178,20 @@ extern void ocall_print_string(const char *str) {
 }
 
 /* Application entry */
-auto SGX_CDECL main() -> int {
+auto SGX_CDECL main(const int argc, const char *argv[]) -> int {
+    const char *enclave = ENCLAVE_FILENAME;
+    // accept an optional argument for the enclave file
+    if (argc == 2) {
+        enclave = argv[1];
+    } else if (argc > 2) {
+        std::cout << "Error: too many arguments" << std::endl;
+        std::cout << argv[0] << ": [SIGNED_ENCLAVE.SO]" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     /* Initialize the enclave */
     /* Debug Support: set 2nd parameter to 1 */
-    sgx_status_t status = sgx_create_enclave(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, nullptr, nullptr, &global_eid, nullptr);
+    sgx_status_t status = sgx_create_enclave(enclave, SGX_DEBUG_FLAG, nullptr, nullptr, &global_eid, nullptr);
     if (status != SGX_SUCCESS) {
         print_error_message(status);
         return EXIT_FAILURE;

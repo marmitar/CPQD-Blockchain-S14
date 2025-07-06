@@ -6,13 +6,12 @@ Sample project using [Intel® Software Guard Extensions (SGX)](https://www.intel
 
 ```sh
 meson setup build
-meson compile -C build signed-enclave app
+meson compile -C build
 ```
 
 ## Run
 
 ```sh
-ln -sf build/Enclave/enclave.signed.so enclave.signed.so
 source /opt/intel/sgxsdk/environment
-build/App/app
+build/App/app build/Enclave/enclave.signed.so
 ```

@@ -9,8 +9,8 @@
       "request": "launch",
       "name": "App",
       "program": "${workspaceFolder}/build/App/app",
-      "cwd": "${workspaceFolder}/build/Enclave",
-      "args": [],
+      "cwd": "${workspaceFolder}",
+      "args": ["build/Enclave/enclave.signed.so"],
       "env": {
         "LD_LIBRARY_PATH": "/opt/intel/sgxsdk/sdk_libs",
       },
