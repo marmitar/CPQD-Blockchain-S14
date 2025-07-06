@@ -60,7 +60,6 @@ extern "C" {
 
 void ecall_libcxx_functions(void);
 
-
 #if defined(__cplusplus)
 }
 #endif

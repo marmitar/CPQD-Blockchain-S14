@@ -192,7 +192,6 @@ int SGX_CDECL main(int argc, char *argv[])
     (void)(argc);
     (void)(argv);
 
-
     /* Initialize the enclave */
     if(initialize_enclave() < 0){
         printf("Enter a character before exit ...\n");
@@ -200,7 +199,6 @@ int SGX_CDECL main(int argc, char *argv[])
         return -1; 
     }
  
-    
     /* Utilize trusted libraries */ 
     ecall_libcxx_functions();
     
