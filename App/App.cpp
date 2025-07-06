@@ -44,7 +44,7 @@
 #include <sgx_eid.h>
 #include <sgx_error.h>
 #include <sgx_urts.h>
-#include <string>
+#include <string_view>
 
 #include "./App.h"
 #include "Enclave_u.h"
@@ -54,12 +54,12 @@ sgx_enclave_id_t global_eid = 0;
 
 using sgx_errlist_t = struct sgx_errlist_t {
     sgx_status_t err;
-    const std::string msg;
-    const std::optional<std::string> sug; /* Suggestion */
+    const std::string_view msg;
+    const std::optional<std::string_view> sug; /* Suggestion */
 };
 
 /** Error code returned by sgx_create_enclave */
-static const std::array<sgx_errlist_t, 17> sgx_errlist {
+static constexpr std::array<sgx_errlist_t, 17> sgx_errlist {
     sgx_errlist_t {
                    .err = SGX_ERROR_UNEXPECTED,
                    .msg = "Unexpected error occurred.",
