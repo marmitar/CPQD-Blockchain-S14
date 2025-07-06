@@ -35,13 +35,16 @@
 #endif
 // clang-format on
 
+#include <array>
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 #include <sgx_defs.h>
 #include <sgx_eid.h>
 #include <sgx_error.h>
 #include <sgx_urts.h>
+#include <string>
 
 #define MAX_PATH FILENAME_MAX
 
@@ -53,117 +56,118 @@ sgx_enclave_id_t global_eid = 0;
 
 using sgx_errlist_t = struct sgx_errlist_t {
     sgx_status_t err;
-    const char *msg;
-    const char *sug; /* Suggestion */
+    const std::string msg;
+    const std::optional<std::string> sug; /* Suggestion */
 };
 
-/* Error code returned by sgx_create_enclave */
-static const sgx_errlist_t sgx_errlist[] /* NOLINT(modernize-avoid-c-arrays) */ = {
-    {
-     .err = SGX_ERROR_UNEXPECTED,
-     .msg = "Unexpected error occurred.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_INVALID_PARAMETER,
-     .msg = "Invalid parameter.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_OUT_OF_MEMORY,
-     .msg = "Out of memory.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_ENCLAVE_LOST,
-     .msg = "Power transition occurred.",
-     .sug = "Please refer to the sample \"PowerTransition\" for details.",
-     },
-    {
-     .err = SGX_ERROR_INVALID_ENCLAVE,
-     .msg = "Invalid enclave image.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_INVALID_ENCLAVE_ID,
-     .msg = "Invalid enclave identification.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_INVALID_SIGNATURE,
-     .msg = "Invalid enclave signature.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_OUT_OF_EPC,
-     .msg = "Out of EPC memory.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_NO_DEVICE,
-     .msg = "Invalid SGX device.",
-     .sug = "Please make sure SGX module is enabled in the BIOS, and install SGX driver afterwards.",
-     },
-    {
-     .err = SGX_ERROR_MEMORY_MAP_CONFLICT,
-     .msg = "Memory map conflicted.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_INVALID_METADATA,
-     .msg = "Invalid enclave metadata.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_DEVICE_BUSY,
-     .msg = "SGX device was busy.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_INVALID_VERSION,
-     .msg = "Enclave version was invalid.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_INVALID_ATTRIBUTE,
-     .msg = "Enclave was not authorized.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_ENCLAVE_FILE_ACCESS,
-     .msg = "Can't open enclave file.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_NDEBUG_ENCLAVE,
-     .msg = "The enclave is signed as product enclave, and can not be created as debuggable enclave.",
-     .sug = NULL,
-     },
-    {
-     .err = SGX_ERROR_MEMORY_MAP_FAILURE,
-     .msg = "Failed to reserve memory for the enclave.",
-     .sug = NULL,
-     },
+/** Error code returned by sgx_create_enclave */
+static const std::array<sgx_errlist_t, 17> sgx_errlist {
+    sgx_errlist_t {
+                   .err = SGX_ERROR_UNEXPECTED,
+                   .msg = "Unexpected error occurred.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_INVALID_PARAMETER,
+                   .msg = "Invalid parameter.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_OUT_OF_MEMORY,
+                   .msg = "Out of memory.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_ENCLAVE_LOST,
+                   .msg = "Power transition occurred.",
+                   .sug = "Please refer to the sample \"PowerTransition\" for details.",
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_INVALID_ENCLAVE,
+                   .msg = "Invalid enclave image.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_INVALID_ENCLAVE_ID,
+                   .msg = "Invalid enclave identification.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_INVALID_SIGNATURE,
+                   .msg = "Invalid enclave signature.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_OUT_OF_EPC,
+                   .msg = "Out of EPC memory.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_NO_DEVICE,
+                   .msg = "Invalid SGX device.",
+                   .sug = "Please make sure SGX module is enabled in the BIOS, and install SGX driver afterwards.",
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_MEMORY_MAP_CONFLICT,
+                   .msg = "Memory map conflicted.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_INVALID_METADATA,
+                   .msg = "Invalid enclave metadata.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_DEVICE_BUSY,
+                   .msg = "SGX device was busy.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_INVALID_VERSION,
+                   .msg = "Enclave version was invalid.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_INVALID_ATTRIBUTE,
+                   .msg = "Enclave was not authorized.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_ENCLAVE_FILE_ACCESS,
+                   .msg = "Can't open enclave file.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_NDEBUG_ENCLAVE,
+                   .msg = "The enclave is signed as product enclave, and can not be created as debuggable enclave.",
+                   .sug = std::nullopt,
+                   },
+    sgx_errlist_t {
+                   .err = SGX_ERROR_MEMORY_MAP_FAILURE,
+                   .msg = "Failed to reserve memory for the enclave.",
+                   .sug = std::nullopt,
+                   },
 };
 
-/* Check error conditions for loading enclave */
-static void print_error_message(sgx_status_t ret) {
-    size_t idx = 0;
-    const size_t ttl = sizeof sgx_errlist / sizeof sgx_errlist[0];
-
-    for (idx = 0; idx < ttl; idx++) {
-        if (ret == sgx_errlist[idx].err) {
-            if (NULL != sgx_errlist[idx].sug) {
-                printf("Info: %s\n", sgx_errlist[idx].sug);
-            }
-            printf("Error: %s\n", sgx_errlist[idx].msg);
-            break;
+[[gnu::const, nodiscard("pure function")]]
+/** Map error code to message. */
+static auto error_message(sgx_status_t ret) -> sgx_errlist_t {
+    for (const auto &idx : sgx_errlist) {
+        if (ret == idx.err) {
+            return idx;
         }
     }
+    return sgx_errlist_t(ret, "Unknown error occurred.", std::nullopt);
+}
 
-    if (idx == ttl) {
-        printf("Error: Unexpected error occurred.\n");
+/** Check error conditions for loading enclave */
+static void print_error_message(sgx_status_t ret) {
+    const sgx_errlist_t err = error_message(ret);
+
+    if (err.sug.has_value()) {
+        printf("Info: %s\n", err.sug.value().data());
     }
+    printf("Error: %s (0x%4x)\n", err.msg.data(), err.err);
 }
 
 /* Initialize the enclave:
