@@ -31,6 +31,7 @@
 
 #include "./Enclave.h"  // must be included before the stdlib
 
+#include <algorithm>
 #include <array>
 #include <cstdarg>
 #include <cstdio> /* vsnprintf */
@@ -42,17 +43,22 @@
  * printf:
  *   Invokes OCALL to display the enclave buffer to the terminal.
  */
-auto printf(const char *fmt, ...) -> int {
+auto printf(const char *fmt, ...) noexcept -> int {
     std::array<char, BUFSIZ> buf = {'\0'};
 
     va_list ap;
     va_start(ap, fmt);
-    (void) vsnprintf(buf.data(), buf.size(), fmt, ap);
+    const int written = vsnprintf(buf.data(), buf.size(), fmt, ap);
     va_end(ap);
+    if (written < 0) {
+        return written;
+    }
 
     auto status = ocall_print_string(buf.data());
     if (status != SGX_SUCCESS) {
         return -1;
     }
-    return 0;
+
+    constexpr int MAX_BYTES = std::max(static_cast<int>(buf.size()) - 1, 0);
+    return std::min(written, MAX_BYTES);
 }
